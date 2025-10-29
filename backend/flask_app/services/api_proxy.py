@@ -1,13 +1,13 @@
+
 # backend/flask_app/services/api_proxy.py
 import httpx
-import asyncio
 from typing import Dict
 
 FASTAPI_BASE_URL = "http://127.0.0.1:8000"  # Update if deployed elsewhere
 
 class FastAPIProxy:
     """
-    Proxy client to communicate with FastAPI async backend.
+    Async proxy to communicate with FastAPI backend.
     """
 
     @staticmethod
@@ -37,4 +37,3 @@ class FastAPIProxy:
             response = await client.get(f"{FASTAPI_BASE_URL}/analytics/recent?limit={limit}")
             response.raise_for_status()
             return response.json()
-
