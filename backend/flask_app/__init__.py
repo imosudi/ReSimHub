@@ -1,7 +1,12 @@
+# backend/flask_app/__init__.py
 from flask import Flask, jsonify
 import requests
+from .routes.training_bridge import bridge_bp
+from .services.api_proxy import FastAPIProxy
 
 app = Flask(__name__)
+
+app.register_blueprint(bridge_bp)
 
 @app.route("/health")
 def health():
@@ -14,6 +19,3 @@ def fastapi_health():
         return jsonify({"flask_bridge": res.json()})
     except requests.exceptions.ConnectionError:
         return jsonify({"error": "FastAPI service not reachable"}), 503
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
