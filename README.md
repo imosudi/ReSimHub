@@ -45,13 +45,13 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
              ┌────────────────────────┼────────────────────────┐
              │                        │                        │
      ┌───────▼────────┐       ┌───────▼────────┐       ┌───────▼────────┐
-     │    Flask API    │◄────►│   FastAPI Core  │◄────►│ Celery Workers  │
-     │ (Legacy/Sync)   │       │ (Async Gateway)│       │ (Distributed)  │
+     │    Flask API   │ ◄────►│   FastAPI Core │ ◄────►│ Celery Workers │
+     │ (Legacy/Sync)  │       │ (Async Gateway)│       │ (Distributed)  │
      └───────┬────────┘       └───────┬────────┘       └───────┬────────┘
              │                        │                        │
-       ┌─────▼─────┐            ┌─────▼─────┐            ┌─────▼─────┐
-       │ PostgreSQL │            │ Redis MQ  │            │ Prometheus │
-       └────────────┘            └───────────┘            └────────────┘
+       ┌─────▼──────┐           ┌─────▼─────┐            ┌─────▼──────┐
+       │ PostgreSQL │           │ Redis MQ  │            │ Prometheus │
+       └────────────┘           └───────────┘            └────────────┘
 ```
 
 ---
