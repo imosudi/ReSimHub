@@ -1,8 +1,11 @@
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from backend.fastapi_app.routers import experiments, environments
 
 app = FastAPI(title="ReSimHub FastAPI Service")
 
+app.include_router(experiments.router)
+app.include_router(environments.router)
+
 @app.get("/health")
 async def health_check():
-    return JSONResponse({"status": "ok", "service": "fastapi"})
+    return {"status": "ok", "service": "fastapi"}
