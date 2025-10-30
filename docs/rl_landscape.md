@@ -23,7 +23,7 @@ It highlights the architectural, orchestration, and operational design aspects o
 
 ---
 
-### 🧩 Summary
+### Summary
 
 ReSimHub distinguishes itself by combining **Flask and FastAPI** into a unified asynchronous backend, with first-class **experiment orchestration, benchmarking, and observability** baked in.  
 It aims to bridge the gap between **academic RL experimentation** and **production-scale distributed training systems**.
