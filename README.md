@@ -124,32 +124,74 @@ celery -A resimhub.tasks worker --loglevel=info
 
 ## 📊 Example Usage
 
+### 1️⃣ Register an Environment
 ```bash
-# Register a new experiment
-curl -X POST http://localhost:8000/environments/     -H "Content-Type: application/json"   -d '{"env_name": "CartPole-v1", "version": "v1"}'
-
-# Expected Output:
+curl -X POST http://localhost:8000/api/environments      -H "Content-Type: application/json"      -d '{"env_name": "CartPole-v1", "version": "v1"}'
 ```
-
+**Output**
 ```json
-{"id": 1, "env_name": "CartPole-v1", "version": "v1", "registered_at": "2025-10-29T06:00:00"}
+{"id":1,"env_name":"CartPole-v1","version":"v1","registered_at":"2025-10-29T06:00:00"}
 ```
 
+---
+
+### 2️⃣ Create a New Experiment
 ```bash
-# Create experiment
-curl -X POST http://localhost:8000/experiments  -H "Content-Type: application/json" -d '{"name": "CartPole-v1", "algo": "DQN"}'
-
-# Expected Output:
+curl -X POST http://localhost:8000/api/experiments      -H "Content-Type: application/json"      -d '{"name": "CartPole-v1", "agent": "DQN", "episodes": 500}'
 ```
-
+**Output**
 ```json
-{"id": 1, "name": "CartPole-v1", "algo": "DQN", "status": "created", "created_at": "2025-10-29T06:00:01"}
-
+{"id":1,"name":"CartPole-v1","agent":"DQN","episodes":500,"status":"created","created_at":"2025-10-29T06:01:00"}
 ```
 
+---
+
+### 3️⃣ Launch Training via Flask Proxy
 ```bash
-# Retrieve experiment results
-curl http://localhost:8000/api/experiments/1/results
+curl -X POST http://localhost:5000/train/1
+```
+**Output**
+```json
+{"message":"Training task queued for experiment 1","task_id":"b7f4e1c2-1234-4f4b-98d8-6a7a1e9012ef"}
+```
+
+---
+
+### 4️⃣ Retrieve Analytics for All Experiments
+```bash
+curl http://localhost:8000/api/analytics/recent
+```
+**Output**
+```json
+{
+  "summary": {
+    "total_experiments": 3,
+    "avg_reward": 182.4,
+    "avg_duration": 47.2
+  },
+  "experiments": [
+    {"id":1,"agent":"DQN","avg_reward":190.2},
+    {"id":2,"agent":"PPO","avg_reward":176.0},
+    {"id":3,"agent":"A2C","avg_reward":181.0}
+  ]
+}
+```
+
+---
+
+### 5️⃣ Retrieve Analytics for a Specific Experiment
+```bash
+curl http://localhost:8000/api/analytics/experiment/1
+```
+**Output**
+```json
+{
+  "experiment_id":1,
+  "agent":"DQN",
+  "avg_reward":190.2,
+  "episodes":500,
+  "status":"completed"
+}
 ```
 
 ---
