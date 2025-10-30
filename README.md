@@ -238,9 +238,9 @@ All rights reserved.
 ## 👤 Author
 
 **Mosudi Isiaka**  
-📧 [mosudi.isiaka@gmail.com](mailto:mosudi.isiaka@gmail.com)  
-🌐 [https://github.com/imosudi](https://github.com/imosudi)
-
+📧 [mosudi.isiaka@gmail.com](mailto:mosudi.isiaka@gmail.com) 
+🌐 [https://mioemi.com](https://mioemi.com)   
+💻 [https://github.com/imosudi](https://github.com/imosudi) 
 ---
 
 ## ⭐ Contributing
