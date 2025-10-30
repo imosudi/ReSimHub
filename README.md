@@ -187,9 +187,9 @@ curl http://127.0.0.1:5000/api/v1/analytics/recent
 
 ---
 
-### 5️⃣ Retrieve Analytics for a Specific Experiment
+### 5️⃣ Retrieve Analytics for a Specific Experiment - say experiment id: 1
 ```bash
-curl http://localhost:8000/api/analytics/experiment/1
+curl http://127.0.0.1:5000/api/v1/analytics/experiment/2
 ```
 **Output**
 ```json
