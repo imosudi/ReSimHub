@@ -282,6 +282,8 @@ curl http://127.0.0.1:5000/api/v1/analytics/experiment/1
 
 ### Upload a Model (multipart/form-data)
 ```bash
+# upload sample model ReSimHub/docs/dqn_model.pkl
+# replace with actual intended model path
 curl -F "file=@docs/dqn_model.pkl" \
      http://127.0.0.1:8000/benchmark/upload_model
 ```
