@@ -1,6 +1,4 @@
-# 🧪 ReSimHub Benchmark API — Enhanced Testing Guide
-
-## 📦 Quick Start
+# Quick Start
 
 ### 1. Clone & Setup
 ```bash
@@ -33,7 +31,7 @@ mkdir -p logs
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 ### Basic Test Execution
 ```bash
@@ -64,7 +62,7 @@ pytest tests/ -k "benchmark" -v
 
 ---
 
-## ✅ Expected Test Results
+## Expected Test Results
 
 | Test Name | Expected Outcome | Validation Points |
 |-----------|------------------|-------------------|
@@ -76,9 +74,9 @@ pytest tests/ -k "benchmark" -v
 
 ---
 
-## 🧾 Example Output
+## Example Output
 
-### ✅ Successful Test Run
+### Successful Test Run
 ```
 ======================================================= test session starts =======================================================
 platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0
@@ -95,7 +93,7 @@ tests/test_benchmark_api.py::test_invalid_compare_model_id PASSED               
 ================================================= 5 passed, 42 warnings in 1.33s ==================================================
 ```
 
-### ⚠️ Understanding Warnings
+### Understanding Warnings
 Most warnings are non-critical:
 - **Redis connection warnings**: Normal when Redis is unavailable (fallback to local storage)
 - **DeprecationWarnings**: Library-related, won't affect functionality
@@ -141,7 +139,7 @@ python scripts/cleanup_test_data.py
 
 ---
 
-## 🧩 Configuration Files
+## Configuration Files
 
 ### pytest.ini
 Create in project root to suppress warnings:
@@ -186,7 +184,7 @@ exclude_lines =
 
 ---
 
-## 🚀 CI/CD Integration
+## CI/CD Integration
 
 ### GitHub Actions Example
 Create `.github/workflows/test.yml`:
@@ -226,7 +224,7 @@ jobs:
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Issue: Tests Fail with Import Errors
 ```bash
@@ -262,7 +260,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 ---
 
-## 📈 Performance Benchmarking
+## Performance Benchmarking
 
 ### Test Execution Time
 ```bash
@@ -284,7 +282,7 @@ pytest tests/ -v --benchmark-only
 
 ---
 
-## 🧠 Best Practices
+## Best Practices
 
 1. **Run tests before commits**
    ```bash
@@ -310,7 +308,7 @@ pytest tests/ -v --benchmark-only
 
 ---
 
-## 📚 Additional Resources
+## Additional Resources
 
 - **FastAPI Testing**: https://fastapi.tiangolo.com/tutorial/testing/
 - **Pytest Documentation**: https://docs.pytest.org/
@@ -318,7 +316,7 @@ pytest tests/ -v --benchmark-only
 
 ---
 
-## 🪪 License & Attribution
+## License & Attribution
 
 **ReSimHub** — BSD 3-Clause License  
 **Author**: Mosudi Isiaka  
@@ -328,6 +326,5 @@ pytest tests/ -v --benchmark-only
 
 *"Testing ensures reproducibility — ReSimHub ensures scalability."* 🧩
 
-**Stage**: 6 — Evaluation & Benchmarking APIs  
 **Status**: ✅ Production Ready  
 **Last Updated**: 2025-10-30
