@@ -90,7 +90,7 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
                                          ▼
                          ┌───────────────────────────────┐
                          │   Prometheus / Grafana Stack  │
-                         │ (Observability & Metrics)     │
+                         │   (Observability & Metrics)   │
                          └───────────────────────────────┘
 
 ```
