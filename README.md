@@ -42,16 +42,16 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
                         │        REST Clients          │
                         └─────────────┬────────────────┘
                                       │
-             ┌────────────────────────┼────────────────────────┐
-             │                        │                        │
-     ┌───────▼────────┐       ┌───────▼────────┐       ┌───────▼────────┐
-     │    Flask API   │ ◄────►│   FastAPI Core │ ◄────►│ Celery Workers │
-     │ (Legacy/Sync)  │       │ (Async Gateway)│       │ (Distributed)  │
-     └───────┬────────┘       └───────┬────────┘       └───────┬────────┘
-             │                        │                        │
-       ┌─────▼──────┐           ┌─────▼─────┐            ┌─────▼──────┐
-       │ PostgreSQL │           │ Redis MQ  │            │ Prometheus │
-       └────────────┘           └───────────┘            └────────────┘
+          ┌───────────────────────────┼────────────────────────┐
+          │                           │                        │
+  ┌───────▼────────┐        ┌─────────▼────────┐       ┌───────▼────────┐
+  │    Flask API   │ ◄────► │FastAPI Core Logic│ ◄────►│ Celery Workers │
+  │ (Legacy/Sync)  │        │ (Async Gateway)  │       │ (Distributed)  │
+  └───────┬────────┘        └─────────┬────────┘       └───────┬────────┘
+          │                           │                        │
+    ┌─────▼──────┐              ┌─────▼─────┐        ┌─────────▼──────────┐
+    │ PostgreSQL │              │ Redis MQ  │        │ Prometheus/Grafana │
+    └────────────┘              └───────────┘        └────────────────────┘
 ```
 
 ---
@@ -104,8 +104,10 @@ CELERY_RESULT_BACKEND=${REDIS_URL}
 ### Run Flask & FastAPI Services
 
 ```bash
-python run_flask.py
-python run_fastapi.py
+# In separate terminals
+python backend/main.py 
+
+uvicorn backend.fastapi_app.main:app --reload --port 8000
 ```
 
 or, with Docker:
@@ -117,7 +119,7 @@ docker-compose up --build
 ### Launch Celery Workers
 
 ```bash
-celery -A resimhub.tasks worker --loglevel=info
+celery -A backend.fastapi_app.services.orchestrator.celery_app worker --loglevel=info
 ```
 
 ---
