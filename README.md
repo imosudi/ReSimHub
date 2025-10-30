@@ -42,12 +42,15 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
                         │        REST Clients          │
                         └─────────────┬────────────────┘
                                       │
+                                      │
           ┌───────────────────────────┼────────────────────────┐
           │                           │                        │
+          │                           │                        │ 
   ┌───────▼────────┐        ┌─────────▼────────┐       ┌───────▼────────┐
   │    Flask API   │ ◄────► │FastAPI Core Logic│ ◄────►│ Celery Workers │
   │ (Legacy/Sync)  │        │ (Async Gateway)  │       │ (Distributed)  │
   └───────┬────────┘        └─────────┬────────┘       └───────┬────────┘
+          │                           │                        │
           │                           │                        │
     ┌─────▼──────┐              ┌─────▼─────┐        ┌─────────▼──────────┐
     │ PostgreSQL │              │ Redis MQ  │        │ Prometheus/Grafana │
