@@ -1,4 +1,5 @@
 
+
 # ![alt text](ReSimHub.svg) ReSimHub
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-async-green?logo=fastapi)
@@ -181,9 +182,14 @@ celery -A backend.fastapi_app.services.orchestrator.celery_app worker --loglevel
 
 ## Example Usage
 
+
+---
+
 ### Register an Environment
 ```bash
-curl -X POST http://localhost:8000/api/environments      -H "Content-Type: application/json"      -d '{"env_name": "CartPole-v1", "version": "v1"}'
+curl -X POST http://localhost:8000/api/environments \
+     -H "Content-Type: application/json" \
+     -d '{"env_name": "CartPole-v1", "version": "v1"}'
 ```
 **Output**
 ```json
@@ -194,7 +200,9 @@ curl -X POST http://localhost:8000/api/environments      -H "Content-Type: appli
 
 ### Create a New Experiment
 ```bash
-curl -X POST http://localhost:8000/api/experiments      -H "Content-Type: application/json"      -d '{"name": "CartPole-v1", "agent": "DQN", "episodes": 500}'
+curl -X POST http://localhost:8000/api/experiments \
+     -H "Content-Type: application/json" \
+     -d '{"name": "CartPole-v1", "agent": "DQN", "episodes": 500}'
 ```
 **Output**
 ```json
@@ -205,8 +213,9 @@ curl -X POST http://localhost:8000/api/experiments      -H "Content-Type: applic
 
 ### Launch Training via Flask Proxy
 ```bash
-curl -X POST http://localhost:5000/api/v1/start_training   -H "Content-Type: application/json"   -d '{"experiment_id": 1, "env_name": "CartPole-v1", "algo": "DQN"}'
-
+curl -X POST http://localhost:5000/api/v1/start_training \
+     -H "Content-Type: application/json" \
+     -d '{"experiment_id": 1, "env_name": "CartPole-v1", "algo": "DQN"}'
 ```
 **Output**
 ```json
@@ -215,7 +224,6 @@ curl -X POST http://localhost:5000/api/v1/start_training   -H "Content-Type: app
   "status": "queued",
   "task_id": "9821142c-3450-4bba-84af-7df037705bb6"
 }
-
 ```
 
 ---
@@ -242,9 +250,9 @@ curl http://127.0.0.1:5000/api/v1/analytics/recent
 
 ---
 
-### Retrieve Analytics for a Specific Experiment - say experiment id: 1
+### Retrieve Analytics for a Specific Experiment (experiment_id: 1)
 ```bash
-curl http://127.0.0.1:5000/api/v1/analytics/experiment/2
+curl http://127.0.0.1:5000/api/v1/analytics/experiment/1
 ```
 **Output**
 ```json
@@ -259,8 +267,106 @@ curl http://127.0.0.1:5000/api/v1/analytics/experiment/2
 
 ---
 
+### Upload a Model (multipart/form-data)
+```bash
+curl -F "file=@/home/mosud/Downloads/dqn_model.pkl" \
+     http://127.0.0.1:8000/benchmark/upload_model
+```
+**Output**
+```json
+{
+  "model_id": "mdl_afdbb795",
+  "status": "uploaded",
+  "uploaded_at": "2025-10-30T14:16:26.241943"
+}
+```
+
 ---
 
+### Simulate Evaluation of an Uploaded Model
+```bash
+curl -X POST http://127.0.0.1:8000/benchmark/run \
+     -F "model_id=mdl_afdbb795" \
+     -F "env_name=CartPole-v1" \
+     -F "episodes=50"
+```
+**Output**
+```json
+{
+  "model_id": "mdl_afdbb795",
+  "env_name": "CartPole-v1",
+  "mean_reward": 203.68,
+  "std_reward": 34.65,
+  "median_reward": 204.18,
+  "latency_ms": 26.02,
+  "total_episodes": 50,
+  "status": "completed",
+  "evaluated_at": "2025-10-30T14:23:19.748328"
+}
+```
+
+---
+
+### List Recent Benchmark Results
+```bash
+curl http://127.0.0.1:8000/benchmark/recent
+```
+**Output**
+```json
+{
+  "count": 2,
+  "results": [
+    {
+      "model_id": "mdl_afdbb795",
+      "env_name": "CartPole-v1",
+      "mean_reward": 203.68,
+      "std_reward": 34.65,
+      "median_reward": 204.18,
+      "latency_ms": 26.02,
+      "total_episodes": 50,
+      "status": "completed",
+      "evaluated_at": "2025-10-30T14:23:19.748328"
+    },
+    {
+      "model_id": "mdl_afdbb795",
+      "env_name": "CartPole-v1",
+      "mean_reward": 198.68,
+      "std_reward": 37.13,
+      "median_reward": 188.05,
+      "latency_ms": 23.86,
+      "total_episodes": 50,
+      "status": "completed",
+      "evaluated_at": "2025-10-30T14:22:28.345363"
+    }
+  ]
+}
+```
+
+---
+
+### Compare Models
+```bash
+curl "http://127.0.0.1:8000/benchmark/compare?model_ids=mdl_afdbb795,mdl_12345678&env=CartPole-v1"
+```
+**Output**
+```json
+{
+  "count": 1,
+  "comparison": [
+    {
+      "model_id": "mdl_afdbb795",
+      "env_name": "CartPole-v1",
+      "mean_reward": 204.06,
+      "std_reward": 31.64,
+      "median_reward": 197.33,
+      "latency_ms": "np.float64(25.53)",
+      "total_episodes": "50",
+      "status": "completed",
+      "evaluated_at": "2025-10-30T14:32:39.036548"
+    }
+  ]
+}
+```
 ## Research Context — RL Infrastructure Landscape
 
 The **ReSimHub** framework emerges from an analysis of the **Reinforcement Learning (RL) infrastructure landscape**, 
