@@ -1,4 +1,15 @@
 # 🧠 ReSimHub
+![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-async-green?logo=fastapi)
+![Flask](https://img.shields.io/badge/Flask-sync-lightgrey?logo=flask)
+![Celery](https://img.shields.io/badge/Celery-distributed-yellowgreen?logo=celery)
+![Redis](https://img.shields.io/badge/Redis-message--broker-red?logo=redis)
+![Pandas](https://img.shields.io/badge/Pandas-DataFrame--Analytics-150458?logo=pandas)
+![NumPy](https://img.shields.io/badge/NumPy-Scientific%20Computing-blue?logo=numpy)
+![Stage](https://img.shields.io/badge/Stage-6%20%2F%208%20--%20Benchmarking-orange)
+![Status](https://img.shields.io/badge/Status-Active-success)
+![License](https://img.shields.io/badge/License-BSD%203--Clause-blue)
+
 
 **ReSimHub** is a **scalable, research-grade backend framework** designed for **reinforcement learning (RL)** experimentation, simulation, and benchmarking.  
 It provides **RESTful** and **asynchronous APIs** for managing **simulation environments**, **training orchestration**, and **agent evaluation** — all optimised for distributed systems and reproducible research.
