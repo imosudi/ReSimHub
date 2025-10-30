@@ -240,7 +240,7 @@ All rights reserved.
 **Mosudi Isiaka**  
 📧 [mosudi.isiaka@gmail.com](mailto:mosudi.isiaka@gmail.com)  
 🌐 [https://github.com/imosudi](https://github.com/imosudi  
-🌐 [https://github.com/imosudi](https://github.com/imosudi))
+💻 [https://github.com/imosudi](https://github.com/imosudi)
 
 ---
 
