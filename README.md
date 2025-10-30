@@ -247,6 +247,24 @@ curl http://127.0.0.1:5000/api/v1/analytics/experiment/2
 
 ---
 
+---
+
+## 📚 Research Context — RL Infrastructure Landscape
+
+The **ReSimHub** framework emerges from an analysis of the **Reinforcement Learning (RL) infrastructure landscape**, 
+as documented in [`docs/rl_landscape.md`](./docs/rl_landscape.md).
+
+This contextual study explores:
+- Current gaps between RL research tools and production-grade simulation systems  
+- The fragmentation of orchestration and analytics workflows in existing frameworks  
+- The need for **unified experiment orchestration**, **analytics pipelines**, and **scalable evaluation layers**  
+
+By addressing these gaps, **ReSimHub** provides a bridge between academic experimentation and scalable applied RL systems.
+
+📖 For full details, see: [RL Landscape Analysis →](./docs/rl_landscape.md)
+
+---
+
 ## 🧪 Testing
 
 ```bash
