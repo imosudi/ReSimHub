@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>ReSimHub icon</title>
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1b2a"/>
+      <stop offset="100%" stop-color="#001e3c"/>
+    </linearGradient>
+    <radialGradient id="hubGrad" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </radialGradient>
+    <filter id="hubGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000814" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <rect x="16" y="16" width="224" height="224" rx="40" fill="url(#bgGrad)"/>
+  <circle cx="128" cy="95" r="30" fill="url(#hubGrad)" filter="url(#hubGlow)"/>
+
+  <g stroke="#89f7fe" stroke-opacity="0.65" stroke-width="4.5" stroke-linecap="round">
+    <line x1="128" y1="65" x2="128" y2="40"/>
+    <line x1="128" y1="125" x2="128" y2="160"/>
+    <line x1="98" y1="95" x2="68" y2="80"/>
+    <line x1="158" y1="95" x2="188" y2="80"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <circle cx="128" cy="35" r="10" fill="#001219" stroke="#6ee7b7" stroke-width="2"/>
+    <circle cx="128" cy="160" r="12" fill="#001219" stroke="#22d3ee" stroke-width="2"/>
+    <circle cx="68" cy="80" r="11" fill="#001219" stroke="#5eead4" stroke-width="2"/>
+    <circle cx="188" cy="80" r="11" fill="#001219" stroke="#5eead4" stroke-width="2"/>
+  </g>
+
+  <g stroke-linecap="round" fill="none">
+    <path d="M118 90q5-10 15-10t15 10" stroke="#0ea5e9" stroke-width="2" opacity="0.9"/>
+    <path d="M128 80v10" stroke="#083c5a" stroke-width="1.5"/>
+    <path d="M123 96a5 5 0 0 0 10 0" stroke="#06b6d4" stroke-width="2"/>
+  </g>
+
+  <g opacity="0.9" transform="translate(117.5 85) scale(0.225)">
+    <polygon points="0,0 80,46 0,92" fill="#001219" opacity="0.8"/>
+    <polygon points="0,0 80,46 0,92" fill="#c7f9ff" opacity="0.25" transform="translate(-4,-2)"/>
+  </g>
+
+  <text x="128" y="210" text-anchor="middle" font-family="Segoe UI,Roboto,'Helvetica Neue',Arial" font-weight="700" fill="#e6f0ff" font-size="16">ReSimHub</text>
+  <text x="128" y="230" text-anchor="middle" font-family="Segoe UI,Roboto,Arial" fill="#a5b4fc" font-size="7">
+    Reinforcement Simulation &amp; Experimentation
+  </text>
+</svg>
