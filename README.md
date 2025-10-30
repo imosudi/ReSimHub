@@ -1,5 +1,5 @@
 
-# 🧠 ![alt text](ReSimHub.svg) ReSimHub
+# ![alt text](ReSimHub.svg) ReSimHub
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-async-green?logo=fastapi)
 ![Flask](https://img.shields.io/badge/Flask-sync-lightgrey?logo=flask)
@@ -19,7 +19,7 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 - **Hybrid Flask–FastAPI Framework** — Combines Flask’s flexibility with FastAPI’s async capabilities.
 - **Experiment Management APIs** — Create, register, and manage experiments programmatically.
@@ -32,7 +32,7 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
 
 ---
 
-## 🧩 Development Roadmap
+## Development Roadmap
 
 | **Stage** | **Focus Area** | **Objective** |
 |:-----------|:----------------|:---------------|
@@ -47,7 +47,7 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
 
 ---
 
-## 🧱 Architecture Overview
+## Architecture Overview
 
 ```
                         ┌──────────────────────────────┐
@@ -71,7 +71,7 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
 
 ---
 
-## 🔁 Service Communication Flow
+## Service Communication Flow
 
 ```
                  ┌────────────────────────────────────────────────────┐
@@ -111,7 +111,7 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
 ```
 
 ---
-## 🛠️ Installation
+## Installation
 
 ### Prerequisites
 
@@ -179,9 +179,9 @@ celery -A backend.fastapi_app.services.orchestrator.celery_app worker --loglevel
 
 ---
 
-## 📊 Example Usage
+## Example Usage
 
-### 1️⃣ Register an Environment
+### Register an Environment
 ```bash
 curl -X POST http://localhost:8000/api/environments      -H "Content-Type: application/json"      -d '{"env_name": "CartPole-v1", "version": "v1"}'
 ```
@@ -192,7 +192,7 @@ curl -X POST http://localhost:8000/api/environments      -H "Content-Type: appli
 
 ---
 
-### 2️⃣ Create a New Experiment
+### Create a New Experiment
 ```bash
 curl -X POST http://localhost:8000/api/experiments      -H "Content-Type: application/json"      -d '{"name": "CartPole-v1", "agent": "DQN", "episodes": 500}'
 ```
@@ -203,7 +203,7 @@ curl -X POST http://localhost:8000/api/experiments      -H "Content-Type: applic
 
 ---
 
-### 3️⃣ Launch Training via Flask Proxy
+### Launch Training via Flask Proxy
 ```bash
 curl -X POST http://localhost:5000/api/v1/start_training   -H "Content-Type: application/json"   -d '{"experiment_id": 1, "env_name": "CartPole-v1", "algo": "DQN"}'
 
@@ -220,7 +220,7 @@ curl -X POST http://localhost:5000/api/v1/start_training   -H "Content-Type: app
 
 ---
 
-### 4️⃣ Retrieve Analytics for All Experiments
+### Retrieve Analytics for All Experiments
 ```bash
 curl http://127.0.0.1:5000/api/v1/analytics/recent
 ```
@@ -242,7 +242,7 @@ curl http://127.0.0.1:5000/api/v1/analytics/recent
 
 ---
 
-### 5️⃣ Retrieve Analytics for a Specific Experiment - say experiment id: 1
+### Retrieve Analytics for a Specific Experiment - say experiment id: 1
 ```bash
 curl http://127.0.0.1:5000/api/v1/analytics/experiment/2
 ```
@@ -261,7 +261,7 @@ curl http://127.0.0.1:5000/api/v1/analytics/experiment/2
 
 ---
 
-## 📚 Research Context — RL Infrastructure Landscape
+## Research Context — RL Infrastructure Landscape
 
 The **ReSimHub** framework emerges from an analysis of the **Reinforcement Learning (RL) infrastructure landscape**, 
 as documented in [`docs/rl_landscape.md`](./docs/rl_landscape.md).
@@ -277,7 +277,7 @@ By addressing these gaps, **ReSimHub** provides a bridge between academic experi
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 pytest tests/ --disable-warnings
@@ -285,7 +285,7 @@ pytest tests/ --disable-warnings
 
 ---
 
-## 🧭 Road Ahead
+## Road Ahead
 
 - [ ] Multi-agent orchestration and scheduling
 - [ ] REST → gRPC bridge
@@ -295,7 +295,7 @@ pytest tests/ --disable-warnings
 
 ---
 
-## 🪪 License
+## License
 
 This project is licensed under the **BSD 3-Clause License** — see the [LICENSE](./LICENSE) file for details.
 
@@ -317,14 +317,14 @@ All rights reserved.
 
 ---
 
-## ⭐ Contributing
+## Contributing
 
 Contributions are welcome!  
 Please open an issue or pull request to suggest new features, improvements, or bug fixes.
 
 ---
 
-## 💡 Citation (Academic Use)
+## Citation (Academic Use)
 
 If you use ReSimHub in your research, please cite as:
 
