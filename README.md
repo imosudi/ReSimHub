@@ -59,7 +59,6 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
 ## 🔁 Service Communication Flow
 
 ```
-latex
                  ┌────────────────────────────────────────────────────┐
                  │                    REST Clients                    │
                  │        (curl, Postman, Frontend, Notebooks)        │
