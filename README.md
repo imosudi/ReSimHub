@@ -491,4 +491,4 @@ If you use ReSimHub in your research, please cite as:
 
 ---
 
-> “ReSimHub bridges simulation, orchestration, and reproducible reinforcement learning — for scalable research you can trust.”
+> “ReSimHub bridges simulation, orchestration, and reproducible reinforcement learning - for scalable research you can trust.”
