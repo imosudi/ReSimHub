@@ -99,7 +99,7 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
                                          │
    ┌────────────────────┐                │                 ┌────────────────────┐
    │   Flask Service    │◄───────────────┘────────────────►│   PostgreSQL DB    │
-   │ (Legacy + Gateway) │                │                 │ (Experiment Store) │
+   │ (Frontend Gateway) │                │                 │ (Experiment Store) │
    └────────────────────┘                │                 └────────────────────┘
                                          │
                                          ▼
@@ -272,7 +272,7 @@ This contextual study explores:
 - The need for **unified experiment orchestration**, **analytics pipelines**, and **scalable evaluation layers**  
 
 By addressing these gaps, **ReSimHub** provides a bridge between academic experimentation and scalable applied RL systems.
-
+This background analysis establishes the motivation for ReSimHub’s architecture, ensuring that design choices align with real-world reproducibility and scalability challenges.
 📖 For full details, see: [RL Landscape Analysis →](./docs/rl_landscape.md)
 
 ---

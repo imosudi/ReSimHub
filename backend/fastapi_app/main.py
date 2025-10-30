@@ -4,7 +4,7 @@ from middlewares.log_middleware import LogMiddleware
 from fastapi.exceptions import RequestValidationError, HTTPException
 from shared.utils.exceptions import http_exception_handler, unhandled_exception_handler
 from shared.utils.logger import get_logger
-from backend.fastapi_app.routers import experiments, environments, status,  train , orchestrator, analytics
+from backend.fastapi_app.routers import experiments, environments, status,  train , orchestrator, analytics, benchmark
 
 
 
@@ -12,12 +12,14 @@ log = get_logger("Main")
 
 app = FastAPI(title="ReSimHub FastAPI Service")
 
+# Include routers
 app.include_router(experiments.router)
 app.include_router(environments.router)
 app.include_router(orchestrator.router)
 app.include_router(train.router)
 app.include_router(status.router)
 app.include_router(analytics.router)
+app.include_router(benchmark.router)
 
 app.add_middleware(LogMiddleware)
 
