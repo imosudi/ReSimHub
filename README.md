@@ -431,7 +431,7 @@ tests/test_benchmark_api.py::test_invalid_compare_model_id PASSED        [100%]
 
 For detailed setup instructions, configuration options, CI/CD integration, and troubleshooting guides, see:
 
-**→ [Complete Testing Guide](docs/resimhub_test_guide.md)**
+**→ [Complete Testing Guide](docs/benchmark_api_tests.md)**
 
 
 ---
