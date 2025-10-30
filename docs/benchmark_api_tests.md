@@ -101,7 +101,7 @@ Most warnings are non-critical:
 
 ---
 
-## 🔍 Post-Test Verification
+## Post-Test Verification
 
 ### 1. Check Test Artifacts
 ```bash
@@ -313,14 +313,6 @@ pytest tests/ -v --benchmark-only
 - **FastAPI Testing**: https://fastapi.tiangolo.com/tutorial/testing/
 - **Pytest Documentation**: https://docs.pytest.org/
 - **Coverage.py Guide**: https://coverage.readthedocs.io/
-
----
-
-## License & Attribution
-
-**ReSimHub** — BSD 3-Clause License  
-**Author**: Mosudi Isiaka  
-**Repository**: [github.com/imosudi/ReSimHub](https://github.com/imosudi/ReSimHub)
 
 ---
 
