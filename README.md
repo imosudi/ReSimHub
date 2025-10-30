@@ -239,8 +239,8 @@ All rights reserved.
 
 **Mosudi Isiaka**  
 📧 [mosudi.isiaka@gmail.com](mailto:mosudi.isiaka@gmail.com)  
-💻 [https://mioemi.com](https://mioemi.com)   
-🌐 [https://github.com/imosudi](https://github.com/imosudi)
+🌐 [https://mioemi.com](https://mioemi.com)   
+💻 [https://github.com/imosudi](https://github.com/imosudi)
 
 ---
 
