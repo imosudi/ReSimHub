@@ -150,18 +150,24 @@ curl -X POST http://localhost:8000/api/experiments      -H "Content-Type: applic
 
 ### 3️⃣ Launch Training via Flask Proxy
 ```bash
-curl -X POST http://localhost:5000/train/1
+curl -X POST http://localhost:5000/api/v1/start_training   -H "Content-Type: application/json"   -d '{"experiment_id": 1, "env_name": "CartPole-v1", "algo": "DQN"}'
+
 ```
 **Output**
 ```json
-{"message":"Training task queued for experiment 1","task_id":"b7f4e1c2-1234-4f4b-98d8-6a7a1e9012ef"}
+{
+  "queued_at": "2025-10-30T06:07:06.472880",
+  "status": "queued",
+  "task_id": "9821142c-3450-4bba-84af-7df037705bb6"
+}
+
 ```
 
 ---
 
 ### 4️⃣ Retrieve Analytics for All Experiments
 ```bash
-curl http://localhost:8000/api/analytics/recent
+curl http://127.0.0.1:5000/api/v1/analytics/recent
 ```
 **Output**
 ```json
