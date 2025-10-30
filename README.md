@@ -1,4 +1,5 @@
-# 🧠 ReSimHub
+
+# 🧠 ![alt text](ReSimHub.svg) ReSimHub
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-async-green?logo=fastapi)
 ![Flask](https://img.shields.io/badge/Flask-sync-lightgrey?logo=flask)
