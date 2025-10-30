@@ -282,7 +282,7 @@ curl http://127.0.0.1:5000/api/v1/analytics/experiment/1
 
 ### Upload a Model (multipart/form-data)
 ```bash
-curl -F "file=@/home/mosud/Downloads/dqn_model.pkl" \
+curl -F "file=@docs/dqn_model.pkl" \
      http://127.0.0.1:8000/benchmark/upload_model
 ```
 **Output**
