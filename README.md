@@ -56,18 +56,25 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
                         └─────────────┬────────────────┘
                                       │
                                       │
-          ┌───────────────────────────┼────────────────────────┐
-          │                           │                        │
-          │                           │                        │ 
-  ┌───────▼────────┐        ┌─────────▼────────┐       ┌───────▼────────┐
-  │    Flask API   │ ◄────► │FastAPI Core Logic│ ◄────►│ Celery Workers │
-  │ (Legacy/Sync)  │        │ (Async Gateway)  │       │ (Distributed)  │
-  └───────┬────────┘        └─────────┬────────┘       └───────┬────────┘
-          │                           │                        │
-          │                           │                        │
-    ┌─────▼──────┐              ┌─────▼─────┐        ┌─────────▼──────────┐
-    │ PostgreSQL │              │ Redis MQ  │        │ Prometheus/Grafana │
-    └────────────┘              └───────────┘        └────────────────────┘
+          ┌───────────────────────────┼───────────────────────────────┐
+          │                           │                               │
+          │                           │                               │
+  ┌───────▼────────┐        ┌─────────▼────────┐            ┌─────────▼─────────┐
+  │    Flask API   │ ◄────► │ FastAPI Core     │ ◄─────────►│ Benchmarking API  │
+  │ (Legacy/Sync)  │        │ (Async Gateway)  │            │ (Model Eval Layer)│
+  └───────┬────────┘        └─────────┬────────┘            └─────────┬─────────┘
+          │                           │                               │
+          │                           │                               │
+  ┌───────▼────────┐          ┌────────▼────────┐             ┌────────▼─────────┐
+  │ Celery Workers │◄────────►│ Evaluation Queue│◄────────────│ Model Uploads    │
+  │ (Distributed)  │          │ (Redis MQ)      │             │ & Orchestration  │
+  └───────┬────────┘          └─────────────────┘             └──────────────────┘
+          │
+          │
+    ┌─────▼──────┐              ┌───────────────┐        ┌────────────────────┐
+    │ PostgreSQL │◄────────────►│ Redis Cache   │◄──────►│ Prometheus/Grafana │
+    └────────────┘              └───────────────┘        └────────────────────┘
+
 ```
 
 ---
@@ -85,6 +92,12 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
                           │       FastAPI Service        │
                           │ (Async REST + Training API)  │
                           └──────────────┬───────────────┘
+                                         │
+                                         ▼
+                     ┌──────────────────────────────────────────┐
+                     │           Benchmarking API               │
+                     │ (Model Uploads + Eval Orchestration)     │
+                     └───────────────────┬──────────────────────┘
                                          │
                                          ▼
                          ┌────────────────────────────────┐
@@ -155,7 +168,7 @@ CELERY_RESULT_BACKEND=${REDIS_URL}
 
 ---
 
-## ⚙️ Running the Project
+## Running the Project
 
 ### Run Flask & FastAPI Services
 
