@@ -127,15 +127,19 @@ celery -A resimhub.tasks worker --loglevel=info
 ```bash
 # Register a new experiment
 curl -X POST http://localhost:8000/environments/     -H "Content-Type: application/json"   -d '{"env_name": "CartPole-v1", "version": "v1"}'
-```
+
 # Expected Output:
+```
+
 ```json
 {"id": 1, "env_name": "CartPole-v1", "version": "v1", "registered_at": "2025-10-29T06:00:00"}
 ```
 
-# Create experiment
 ```bash
+# Create experiment
 curl -X POST http://localhost:8000/experiments  -H "Content-Type: application/json" -d '{"name": "CartPole-v1", "algo": "DQN"}'
+
+# Expected Output:
 ```
 
 ```json
