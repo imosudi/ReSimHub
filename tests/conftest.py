@@ -15,13 +15,18 @@ import shutil
 import redis
 from pathlib import Path
 
+from backend.fastapi_app.core.config import CacheConfig
+
+cache_config = CacheConfig()
+
+
 # -------------------------------------------------------------------
 # GLOBAL CONFIG
 # -------------------------------------------------------------------
 STORAGE_DIR = Path("storage/models")
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/3")
+REDIS_URL = os.getenv("REDIS_URL", cache_config.url+'3') # "redis://localhost:6379/3")
 
 
 @pytest.fixture(scope="session", autouse=True)

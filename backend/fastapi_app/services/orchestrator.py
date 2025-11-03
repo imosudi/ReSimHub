@@ -5,15 +5,20 @@ import json
 import time
 import random
 from datetime import datetime
+from backend.fastapi_app.core.config import CacheConfig
 from shared.utils.logger import get_logger
 
 log = get_logger("TrainingService")
 
+
+cache_config = CacheConfig()
+
+
 # Initialise Celery
 celery_app = Celery(
     "resimhub",
-    broker="redis://localhost:6379/0",
-    backend="redis://localhost:6379/1",
+    broker=cache_config.url+'0', #"redis://localhost:6379/0",
+    backend=cache_config.url+'1', #"redis://localhost:6379/1",
 )
 
 # Redis for live progress updates

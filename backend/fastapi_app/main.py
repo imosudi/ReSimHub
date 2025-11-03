@@ -1,18 +1,32 @@
+
+
 # backend/fastapi_app/main.py
 from fastapi import FastAPI
-from middlewares.log_middleware import LogMiddleware
 from fastapi.exceptions import RequestValidationError, HTTPException
+from backend.fastapi_app.core.config import AppConfig
+from backend.fastapi_app.core.db import init_db
+
+from middlewares.log_middleware import LogMiddleware
 from shared.utils.exceptions import http_exception_handler, unhandled_exception_handler
 from shared.utils.logger import get_logger
-from backend.fastapi_app.routers import experiments, environments, status,  train , orchestrator, analytics, benchmark, metrics
-from backend.fastapi_app.core.logging_config import logger
+from backend.fastapi_app.routers import (
+    experiments,
+    environments,
+    status,
+    train,
+    orchestrator,
+    analytics,
+    benchmark,
+    metrics,
+)
+from backend.fastapi_app.core.logging_config import logger  # structured logger
 
 
 
 log = get_logger("Main")
+app_config = AppConfig()
 
-
-app = FastAPI(title="ReSimHub  Backend Service", version="0.7.0")
+app = FastAPI(title="ReSimHub  Backend Service", version=app_config.version)
 
 # Include routers
 app.include_router(experiments.router)
@@ -26,20 +40,42 @@ app.include_router(metrics.router)
 
 app.add_middleware(LogMiddleware)
 
-# Exception handlers
+# Exception Handlers
 app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, http_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
 
-
+# -------------------------------------------------------
+# 🧩 Lifecycle Events
+# -------------------------------------------------------
 @app.on_event("startup")
-async def startup_event():
-    log.info("ReSimHub Application startup complete.")
+async def on_startup():
+    """Initialize database and log startup state."""
+    try:
+        init_db()
+        logger.info("Database initialised successfully.")
+    except Exception as e:
+        logger.error("Database initialisation failed", error=str(e))
+    logger.info("ReSimHub Application startup complete.")
+
 
 @app.on_event("shutdown")
-async def shutdown_event():
-    log.info("ReSimHub Application shutting down.")
+async def on_shutdown():
+    """Graceful shutdown with structured log."""
+    logger.info("ReSimHub Application shutting down.")
 
-@app.get("/health")
+# -------------------------------------------------------
+# 🩺 Health Check Endpoint
+# -------------------------------------------------------
+@app.get("/health", tags=["System"])
 async def health_check():
-    return {"status": "ok", "service": "fastapi"}
+    """Simple health check endpoint."""
+    return {"status": "ok", "service": "backend fastapi service", "version": app.version}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("backend.fastapi_app.main:app", host="0.0.0.0", port=8000, reload=True)
+
+

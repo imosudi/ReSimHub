@@ -2,9 +2,12 @@ import asyncio
 import json
 #import aioredis
 from redis import asyncio as aioredis
+from backend.fastapi_app.core.config import CacheConfig
 from shared.utils.logger import get_logger
 
 log = get_logger("ProgressBroadcastService")
+
+cache_config = CacheConfig()
 
 class ProgressBroadcastService:
     """
@@ -12,7 +15,7 @@ class ProgressBroadcastService:
     Allows multiple clients to subscribe to a single task’s progress channel.
     """
 
-    def __init__(self, redis_url: str = "redis://localhost:6379/2"):
+    def __init__(self, redis_url: str = cache_config.url+'2'): # "redis://localhost:6379/2"):
         self.redis_url = redis_url
         self.subscribers = {}  # {task_id: set(websocket_or_queue)}
 
