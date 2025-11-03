@@ -1,0 +1,193 @@
+{
+  "id": null,
+  "uid": "resimhub-observe",
+  "title": "📊 ReSimHub Observability Dashboard",
+  "tags": ["resimhub", "reinforcement-learning", "metrics"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "10s",
+  "style": "dark",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "🧠 Active RL Experiments",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [{ "expr": "rl_experiments_active", "refId": "A" }],
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 6 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "graph",
+      "title": "🏁 Completed Training Runs (per minute)",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "increase(rl_training_completed_total[1m])",
+          "legendFormat": "Completed Trainings",
+          "refId": "A"
+        }
+      ],
+      "gridPos": { "x": 8, "y": 0, "w": 16, "h": 6 },
+      "lines": true,
+      "fill": 2,
+      "linewidth": 2,
+      "yaxes": [
+        { "format": "short", "label": "Training Runs" },
+        { "format": "short" }
+      ],
+      "legend": { "show": true, "values": false }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "⏱️ Average Benchmark Latency (ms)",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "rl_avg_benchmark_latency_ms",
+          "legendFormat": "Avg Latency (ms)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 6, "w": 24, "h": 7 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 40 },
+              { "color": "red", "value": 60 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "💻 System Resource Utilisation (CPU % / Memory MB)",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "rate(process_cpu_seconds_total[30s]) * 100",
+          "legendFormat": "CPU Usage (%)",
+          "refId": "A"
+        },
+        {
+          "expr": "process_resident_memory_bytes / 1024 / 1024",
+          "legendFormat": "Memory Usage (MB)",
+          "refId": "B"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 13, "w": 12, "h": 7 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green" },
+              { "color": "orange", "value": 75 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      }
+    },
+    {
+      "id": 5,
+      "type": "bargauge",
+      "title": "📊 Experiment Throughput per Environment",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "sum by(env_name) (rl_training_completed_total)",
+          "legendFormat": "{{env_name}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 13, "w": 12, "h": 7 },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "unit": "short"
+        }
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "job",
+        "type": "query",
+        "label": "Job",
+        "datasource": { "type": "prometheus", "uid": "Prometheus" },
+        "query": "label_values(job)",
+        "current": { "selected": true, "text": "resimhub", "value": "resimhub" }
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "type": "dashboard",
+        "name": "Annotations & Alerts",
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)"
+      }
+    ]
+  },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+  }
+}
