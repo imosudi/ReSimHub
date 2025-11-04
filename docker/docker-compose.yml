@@ -1,0 +1,164 @@
+
+
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: resimhub-backend
+    command: uvicorn backend.fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - envs/.env
+    depends_on:
+      - redis
+    networks:
+      - resimhub-net
+
+  redis:
+    image: redis:7
+    container_name: resimhub-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - resimhub-net
+
+networks:
+  resimhub-net:
+    driver: bridge
+# docker/docker-compose.yml
+version: "3.9"
+
+services:
+  fastapi:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.fastapi
+    image: resimhub/fastapi:local
+    container_name: resimhub_fastapi
+    command: uvicorn backend.fastapi_app.main:app --host 0.0.0.0 --port 8000 --log-level info
+    env_file:
+      - ../docker/.env.example
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - LOG_FILE=/app/logs/resimhub.log
+      - PROMETHEUS_ENDPOINT=/metrics
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - ../:/app:rw
+    networks:
+      - resimhub-net
+
+  flask:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.flask
+    image: resimhub/flask:local
+    container_name: resimhub_flask
+    command: python backend/main.py
+    env_file:
+      - ../docker/.env.example
+    ports:
+      - "5000:5000"
+    depends_on:
+      - fastapi
+    volumes:
+      - ../:/app:rw
+    networks:
+      - resimhub-net
+
+  celery_worker:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.fastapi
+    image: resimhub/celery:local
+    container_name: resimhub_celery_worker
+    command: >
+      celery -A backend.fastapi_app.services.orchestrator.celery_app worker
+      --loglevel=info --concurrency=2
+    env_file:
+      - ../docker/.env.example
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - ../:/app:rw
+    networks:
+      - resimhub-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: resimhub_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - resimhub-net
+    volumes:
+      - redis_data:/data
+
+  db:
+    image: postgres:15
+    container_name: resimhub_db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - resimhub-net
+
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: resimhub_prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    ports:
+      - "9091:9090"   
+    volumes:
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - resimhub-net
+    depends_on:
+      - fastapi
+
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: resimhub_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../monitoring/resimhub_dashboard.json:/etc/grafana/provisioning/dashboards/resimhub_dashboard.json:ro
+    depends_on:
+      - prometheus
+    networks:
+      - resimhub-net
+
+volumes:
+  redis_data:
+  db_data:
+  grafana_data:
+
+networks:
+  resimhub-net:
+    driver: bridge
+
