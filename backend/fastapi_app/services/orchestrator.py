@@ -112,8 +112,8 @@ def run_training_task(self, experiment_id: int, env_name: str, algo: str):
     # Broadcast completion
     redis_client.publish(f"task_progress:{task_id}", json.dumps(result))
     log.info(
-        f"Training job for Experiment {experiment_id} completed successfully "
-        f"(Final Accuracy: {final_accuracy})"
+        f"Training job for Experiment {experiment_id} completed | "
+        f"Env={env_name} | Algo={algo} | Final Accuracy: {final_accuracy}"
     )
 
     # Sync final state to Redis
