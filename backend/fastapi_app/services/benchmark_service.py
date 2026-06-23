@@ -21,7 +21,10 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Lightweight Redis metadata store (optional - used if Redis available)
 try:
-    redis_client = redis.Redis.from_url(cache_config.url+'3', decode_resposes=True) # "redis://localhost:6379/3", decode_responses=True)
+    base_url = cache_config.url
+    if not base_url.endswith("/"):
+        base_url += "/"
+    redis_client = redis.Redis.from_url(f"{base_url}3", decode_responses=True)
     redis_client.ping()
     USE_REDIS = True
 except Exception:

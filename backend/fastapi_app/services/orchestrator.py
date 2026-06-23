@@ -14,15 +14,23 @@ log = get_logger("TrainingService")
 cache_config = CacheConfig()
 
 
+base_url = cache_config.url
+if not base_url.endswith("/"):
+    base_url += "/"
+
+broker_url = f"{base_url}0"
+backend_url = f"{base_url}1"
+client_url = f"{base_url}2"
+
 # Initialise Celery
 celery_app = Celery(
     "resimhub",
-    broker=cache_config.url+'0', #"redis://localhost:6379/0",
-    backend=cache_config.url+'1', #"redis://localhost:6379/1",
+    broker=broker_url,
+    backend=backend_url,
 )
 
 # Redis for live progress updates
-redis_client = redis.Redis(host="localhost", port=6379, db=2, decode_responses=True)
+redis_client = redis.Redis.from_url(client_url, decode_responses=True)
 
 # Optional: Redis-backed table for tracking tasks (used by /tasks)
 TASK_TABLE_KEY = "resimhub:tasks"

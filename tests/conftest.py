@@ -26,7 +26,10 @@ cache_config = CacheConfig()
 STORAGE_DIR = Path("storage/models")
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
-REDIS_URL = os.getenv("REDIS_URL", cache_config.url+'3') # "redis://localhost:6379/3")
+base_url = cache_config.url
+if not base_url.endswith("/"):
+    base_url += "/"
+REDIS_URL = os.getenv("REDIS_URL", f"{base_url}3")
 
 
 @pytest.fixture(scope="session", autouse=True)
