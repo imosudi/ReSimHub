@@ -1,10 +1,15 @@
 # backend/flask_app/__init__.py
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from .routes.training_bridge import bridge_bp
 import requests
 
 app = Flask(__name__)
 app.register_blueprint(bridge_bp)
+
+@app.route("/")
+def home():
+    """Render the project home page."""
+    return render_template("index.html")
 
 @app.route("/health")
 def health():
