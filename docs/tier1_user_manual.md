@@ -372,7 +372,7 @@ curl -s -X POST http://127.0.0.1:8000/checkpoints/ \
   "step": 2500,
   "reward": 485.5,
   "loss": 0.0124,
-  "file_path": "/home/mosud/Documents/dev/ReSimHub/storage/checkpoints/ckpt_8f19da21.pt",
+  "file_path": "~/Documents/dev/ReSimHub/storage/checkpoints/ckpt_8f19da21.pt",
   "file_size_bytes": 1024,
   "checksum": "a3b2c1d0e5f6...",
   "version": "v1.0",
@@ -523,7 +523,7 @@ curl -s "http://127.0.0.1:8000/orchestrate/tasks?limit=10"
 
 ## Automated Walkthrough Script
 
-An automated Python script executing all 10 stages sequentially is available at [`scripts/run_tier1_walkthrough.py`](file:///home/mosud/Documents/dev/ReSimHub/scripts/run_tier1_walkthrough.py).
+An automated Python script executing all 10 stages sequentially is available at [`scripts/run_tier1_walkthrough.py`](../scripts/run_tier1_walkthrough.py) (located at `~/Documents/dev/ReSimHub/scripts/run_tier1_walkthrough.py`).
 
 To execute the complete lifecycle in a single command:
 ```bash
