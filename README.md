@@ -22,14 +22,16 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
 
 ## Key Features
 
-- **Hybrid Flask-FastAPI Framework**: Combines Flask’s flexibility with FastAPI’s async capabilities.
-- **Experiment Management APIs**: Create, register, and manage experiments programmatically.
-- **Distributed Orchestration**: Scalable Celery + Redis job queues for RL training workloads.
-- **Data Processing Layer**: NumPy/Pandas-powered analytics for logs, metrics, and benchmarking.
-- **Unified API Gateway**: Seamless bridge between Flask and FastAPI services.
-- **Evaluation & Benchmarking APIs**: Compare and score RL agents using consistent metrics.
-- **Observability Stack**: Prometheus and Grafana integration for monitoring.
-- **Containerised Deployment**: Docker- and Kubernetes-ready for research clusters.
+- **Asynchronous Service Architecture**: High-performance asynchronous services coupled with synchronous gateways for scalable simulation workloads.
+- **Lifecycle & Experiment Management**: Programmatic registration, configuration tracking, and lifecycle control for simulation environments and training trials.
+- **Distributed Multi-Agent Orchestration**: Priority scheduling and concurrent batch dispatch across scalable worker pools for parallel agent training.
+- **Dynamic Checkpointing & Artifact Versioning**: Automated model weight persistence, SHA-256 integrity verification, and seamless training resumption.
+- **High-Throughput Simulator Bridging**: Low-latency communication interfaces bridging REST, WebSocket streaming, and Protocol Buffers for fast environment stepping.
+- **Automated Analytics & Trajectory Processing**: Robust pipelines for trajectory processing, episode aggregation, and comparative statistical analytics.
+- **Standardised Policy Benchmarking**: Reproducible scoring, multi-model evaluation, and historical performance tracking across diverse simulation domains.
+- **Real-Time Telemetry & Streaming**: Live WebSocket telemetry feeds and interactive visualisations for monitoring convergence, loss, and reward trajectories.
+- **End-to-End Observability & Diagnostics**: Structured audit logging, metrics instrumentation, health inspection, and distributed system monitoring.
+- **Cloud-Native Cluster Deployment**: Production-ready deployment specifications designed for reproducible execution across local workstations and distributed compute clusters.
 
 ---
 
