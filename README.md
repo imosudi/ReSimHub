@@ -14,22 +14,22 @@
 
 
 **ReSimHub** is a **scalable, research-grade backend framework** designed for **reinforcement learning (RL)** experimentation, simulation, and benchmarking.  
-It provides **RESTful** and **asynchronous APIs** for managing **simulation environments**, **training orchestration**, and **agent evaluation** — all optimised for distributed systems and reproducible research.
+It provides **RESTful** and **asynchronous APIs** for managing **simulation environments**, **training orchestration**, and **agent evaluation**, all optimised for distributed systems and reproducible research.
 
-> Built for modern RL pipelines — where **experimentation**, **asynchronous training**, and **performance evaluation** converge.
+> Built for modern RL pipelines, where **experimentation**, **asynchronous training**, and **performance evaluation** converge.
 
 ---
 
 ## Key Features
 
-- **Hybrid Flask–FastAPI Framework** — Combines Flask’s flexibility with FastAPI’s async capabilities.
-- **Experiment Management APIs** — Create, register, and manage experiments programmatically.
-- **Distributed Orchestration** — Scalable Celery + Redis job queues for RL training workloads.
-- **Data Processing Layer** — NumPy/Pandas-powered analytics for logs, metrics, and benchmarking.
-- **Unified API Gateway** — Seamless bridge between Flask and FastAPI services.
-- **Evaluation & Benchmarking APIs** — Compare and score RL agents using consistent metrics.
-- **Observability Stack** — Prometheus and Grafana integration for monitoring.
-- **Containerised Deployment** — Docker- and Kubernetes-ready for research clusters.
+- **Hybrid Flask-FastAPI Framework**: Combines Flask’s flexibility with FastAPI’s async capabilities.
+- **Experiment Management APIs**: Create, register, and manage experiments programmatically.
+- **Distributed Orchestration**: Scalable Celery + Redis job queues for RL training workloads.
+- **Data Processing Layer**: NumPy/Pandas-powered analytics for logs, metrics, and benchmarking.
+- **Unified API Gateway**: Seamless bridge between Flask and FastAPI services.
+- **Evaluation & Benchmarking APIs**: Compare and score RL agents using consistent metrics.
+- **Observability Stack**: Prometheus and Grafana integration for monitoring.
+- **Containerised Deployment**: Docker- and Kubernetes-ready for research clusters.
 
 ---
 
@@ -37,11 +37,11 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
 
 | **Stage** | **Focus Area** | **Objective** |
 |:-----------|:----------------|:---------------|
-| **Stage 1** | Project Bootstrap | Initialise structure, dependencies, hybrid Flask–FastAPI framework, and CI pipeline. |
+| **Stage 1** | Project Bootstrap | Initialise structure, dependencies, hybrid Flask-FastAPI framework, and CI pipeline. |
 | **Stage 2** | Core Experimentation APIs | Create experiment management, environment registration, and metadata models. |
 | **Stage 3** | Async Orchestration | Integrate Celery + Redis for distributed training tasks. |
 | **Stage 4** | Data Processing Layer | Add NumPy/Pandas-powered services for results and benchmarking. |
-| **Stage 5** | Flask–FastAPI Bridge | Implement communication bridge and unified API gateway. |
+| **Stage 5** | Flask-FastAPI Bridge | Implement communication bridge and unified API gateway. |
 | **Stage 6** | Evaluation & Benchmarking APIs | Develop endpoints for agent evaluation and comparative benchmarking. |
 | **Stage 7** | Observability & Persistence | Integrate DB persistence, monitoring, and structured logging. |
 | **Stage 8** | End-to-End Test & Deployment | Containerise, test, and deploy with Docker/Kubernetes. |
@@ -481,13 +481,13 @@ http://127.0.0.1:8000/dashboard
 ```
 
 **Key Dashboard Features:**
-- **Live Training Visualizer**: Launch interactive training sessions via WebSocket (`/ws/live-train`) and watch real-time reward convergence, moving averages, loss decay, and exploration rate.
+- **Live Training Visualiser**: Launch interactive training sessions via WebSocket (`/ws/live-train`) and watch real-time reward convergence, moving averages, loss decay, and exploration rate.
 - **Task Stream Inspector**: Connect directly to arbitrary Celery tasks via WebSocket (`/ws/tasks/{task_id}`).
 - **Interactive Benchmark Suite**: Trigger policy evaluations on environments (`CartPole-v1`, `LunarLander-v2`) and compare multi-agent performances dynamically.
 - **Real-Time Telemetry**: Live metric snapshots via WebSocket (`/ws/live-metrics`) and Prometheus metrics gauges.
 
 ---
-## Research Context — RL Infrastructure Landscape
+## Research Context: RL Infrastructure Landscape
 
 The **ReSimHub** framework emerges from an analysis of the **Reinforcement Learning (RL) infrastructure landscape**, 
 as documented in [`docs/rl_landscape.md`](./docs/rl_landscape.md).
@@ -551,12 +551,12 @@ For detailed setup instructions, configuration options, CI/CD integration, and t
 
 ---
 
-## License
+## Licence
 
-This project is licensed under the **BSD 3-Clause License** — see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the **BSD 3-Clause Licence**. See the [LICENSE](./LICENSE) file for details.
 
 ```
-BSD 3-Clause License
+BSD 3-Clause Licence
 
 Copyright (c) 2025, Mosudi Isiaka
 All rights reserved.

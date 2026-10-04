@@ -3,9 +3,9 @@
 This is a detailed comparison of **ReSimHub** with other notable open-source and proprietary reinforcement learning (RL) infrastructure projects.  
 It highlights the architectural, orchestration, and operational design aspects of each system.
 
-| Project | License | API Exposure | Orchestration Type | Distributed Support | Benchmarking | Monitoring/Observability | Metadata & Experiment Tracking | Simulation Integration | Scalability Level | Deployment Stack | Notes |
+| Project | Licence | API Exposure | Orchestration Type | Distributed Support | Benchmarking | Monitoring/Observability | Metadata & Experiment Tracking | Simulation Integration | Scalability Level | Deployment Stack | Notes |
 |:--------|:---------|:--------------|:-------------------|:-------------------|:--------------|:--------------------------|:-------------------------------|:-----------------------|:------------------|:------------------|:------|
-| **ReSimHub** | BSD-3-Clause | REST + Async (Flask–FastAPI Hybrid) | Celery + Redis | ✅ Full | ✅ Integrated | ✅ Prometheus/Grafana | ✅ Built-in | ✅ Custom Envs + OpenAI Gym | High | Docker, Kubernetes | Unified hybrid backend for RL experimentation |
+| **ReSimHub** | BSD-3-Clause | REST + Async (Flask-FastAPI Hybrid) | Celery + Redis | ✅ Full | ✅ Integrated | ✅ Prometheus/Grafana | ✅ Built-in | ✅ Custom Envs + OpenAI Gym | High | Docker, Kubernetes | Unified hybrid backend for RL experimentation |
 | **Ray RLlib** | Apache 2.0 | Python, REST (partial) | Ray Cluster | ✅ Full | ✅ | ✅ (TensorBoard, Prometheus) | ✅ via Tune | ✅ Gym, PettingZoo | High | Docker, Kubernetes | Industry-grade distributed RL framework |
 | **OpenAI Baselines** | MIT | Python | Local | ❌ | ✅ | ❌ | Limited | ✅ Gym | Medium | Local | Classic implementations of key RL algorithms |
 | **Stable-Baselines3** | MIT | Python | Local | ❌ | ✅ | ❌ | Partial | ✅ Gym | Medium | Local | Modular, training-focused framework |

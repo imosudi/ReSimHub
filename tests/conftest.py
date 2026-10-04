@@ -63,15 +63,15 @@ def clean_test_environment():
     STORAGE_DIR.mkdir(parents=True, exist_ok=True)
     print(f"📂 Created fresh storage directory: {STORAGE_DIR}")
 
-    # 3️⃣ Initialize Database Tables
+    # 3️⃣ Initialise Database Tables
     try:
         from backend.fastapi_app.core.db import init_db
         init_db()
         print("🗄️ Database tables initialised.")
     except Exception as e:
-        print(f"⚠️ Database initialization warning: {e}")
+        print(f"⚠️ Database initialisation warning: {e}")
 
     yield
 
     # Post-test cleanup (optional)
-    print("\n🧩 Tests completed — environment teardown done.")
+    print("\n🧩 Tests completed: environment teardown done.")

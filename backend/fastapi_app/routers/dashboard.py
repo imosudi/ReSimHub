@@ -25,7 +25,7 @@ TEMPLATE_PATH = Path(__file__).parent.parent / "templates" / "dashboard.html"
 @router.get("/dashboard", response_class=HTMLResponse)
 async def serve_dashboard():
     """
-    Renders the ReSimHub real-time RL visualizer & benchmarking dashboard.
+    Renders the ReSimHub real-time RL visualiser & benchmarking dashboard.
     """
     if TEMPLATE_PATH.exists():
         html_content = TEMPLATE_PATH.read_text(encoding="utf-8")

@@ -54,7 +54,7 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 # -------------------------------------------------------
 @app.on_event("startup")
 async def on_startup():
-    """Initialize database, progress broadcaster, and log startup state."""
+    """Initialise database, progress broadcaster, and log startup state."""
     try:
         init_db()
         logger.info("Database initialised successfully.")
@@ -64,7 +64,7 @@ async def on_startup():
     try:
         broadcaster = get_broadcast_service()
         await broadcaster.connect()
-        logger.info("Progress broadcaster initialized.")
+        logger.info("Progress broadcaster initialised.")
     except Exception as e:
         logger.warning("Progress broadcaster init warning", error=str(e))
 

@@ -20,7 +20,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def init_db():
-    """Initialize database tables. Called on application startup."""
+    """Initialise database tables. Called on application startup."""
     import shared.models
     Base.metadata.create_all(bind=engine)
 

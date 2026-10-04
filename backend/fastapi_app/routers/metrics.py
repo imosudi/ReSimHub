@@ -18,7 +18,7 @@ rl_experiments_active.set(3)
 rl_training_completed_total.set(5)
 rl_avg_benchmark_latency_ms.set(24.56)
 
-logger.info("Observability & Persistence initialized.")
+logger.info("Observability & Persistence initialised.")
 
 @router.get("/", response_class=Response)
 async def get_metrics(db: Session = Depends(get_db)):

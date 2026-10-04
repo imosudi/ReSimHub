@@ -320,7 +320,7 @@ pytest tests/ -v --benchmark-only
 
 ---
 
-*"Testing ensures reproducibility — ReSimHub ensures scalability."* 🧩
+*"Testing ensures reproducibility; ReSimHub ensures scalability."* 🧩
 
 **Status**: ✅ Production Ready  
 **Last Updated**: 2025-10-30
