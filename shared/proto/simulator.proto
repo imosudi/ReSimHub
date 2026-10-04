@@ -1,0 +1,127 @@
+// Protocol Buffers definition for high-throughput simulator communication in ReSimHub.
+// Enables low-latency stepping, observation streaming, and batch evaluation.
+
+syntax = "proto3";
+
+package resimhub.simulator;
+
+// Environment specification detailing state dimensions and action space.
+message EnvironmentSpec {
+    string env_id = 1;
+    int32 observation_dim = 2;
+    int32 action_dim = 3;
+    bool is_discrete = 4;
+    int32 max_episode_steps = 5;
+    float reward_threshold = 6;
+    string description = 7;
+}
+
+// Request to initialise or reset an environment instance.
+message ResetRequest {
+    string env_id = 1;
+    int64 seed = 2;
+    map<string, string> options = 3;
+}
+
+// Response returned after environment reset with initial observation.
+message ResetResponse {
+    string env_id = 1;
+    repeated float observation = 2;
+    map<string, string> info = 3;
+    bool success = 4;
+}
+
+// Single step transition request containing selected action.
+message StepRequest {
+    string env_id = 1;
+    repeated float continuous_action = 2;
+    int64 discrete_action = 3;
+    bool is_discrete = 4;
+    int64 step_index = 5;
+}
+
+// Result of stepping an environment instance.
+message StepResponse {
+    string env_id = 1;
+    repeated float observation = 2;
+    float reward = 3;
+    bool done = 4;
+    bool truncated = 5;
+    map<string, string> info = 6;
+    int64 step_count = 7;
+    float latency_ms = 8;
+}
+
+// Request to execute multiple environment steps in parallel or sequence.
+message BatchStepRequest {
+    repeated StepRequest steps = 1;
+    string batch_id = 2;
+}
+
+// Aggregated response for a batch step execution.
+message BatchStepResponse {
+    repeated StepResponse responses = 1;
+    int64 total_steps = 2;
+    float elapsed_ms = 3;
+    float average_step_latency_ms = 4;
+    string batch_id = 5;
+}
+
+// Request to stream observations across consecutive steps.
+message StreamObservationsRequest {
+    string env_id = 1;
+    int64 max_steps = 2;
+    int64 seed = 3;
+    string policy_type = 4; // e.g. "random", "heuristic", "zero"
+}
+
+// Request to measure stepping throughput between client and simulator.
+message BenchmarkThroughputRequest {
+    string env_id = 1;
+    int64 num_steps = 2;
+    int32 batch_size = 3;
+}
+
+// Response containing throughput metrics.
+message BenchmarkThroughputResponse {
+    string env_id = 1;
+    int64 total_steps = 2;
+    float elapsed_seconds = 3;
+    float steps_per_second = 4;
+    string protocol = 5;
+    float mean_latency_ms = 6;
+}
+
+// Health and capability enquiry request.
+message HealthRequest {
+    string client_id = 1;
+}
+
+// Health and capability response.
+message HealthResponse {
+    string status = 1;
+    string version = 2;
+    repeated string available_environments = 3;
+    int64 uptime_seconds = 4;
+}
+
+// High-throughput gRPC service bridging simulators and agent runners.
+service SimulatorBridge {
+    // Check service health and query supported environments.
+    rpc CheckHealth (HealthRequest) returns (HealthResponse);
+
+    // Initialise or reset an environment to its starting state.
+    rpc Reset (ResetRequest) returns (ResetResponse);
+
+    // Execute a single simulation step.
+    rpc Step (StepRequest) returns (StepResponse);
+
+    // Vectorised batch execution of multiple environment steps.
+    rpc BatchStep (BatchStepRequest) returns (BatchStepResponse);
+
+    // Stream successive state observations over a live server-side session.
+    rpc StreamObservations (StreamObservationsRequest) returns (stream StepResponse);
+
+    // Benchmark simulator stepping throughput over gRPC.
+    rpc BenchmarkThroughput (BenchmarkThroughputRequest) returns (BenchmarkThroughputResponse);
+}

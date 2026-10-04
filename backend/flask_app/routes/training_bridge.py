@@ -123,4 +123,33 @@ def checkpoint_detail(checkpoint_id):
 def resume_training(checkpoint_id):
     return handle_proxy_call(FastAPIProxy.post_resume_checkpoint(checkpoint_id, request.json or {}))
 
+@bridge_bp.route("/simulator/health", methods=["GET"])
+def simulator_health():
+    return handle_proxy_call(FastAPIProxy.get_simulator_health())
+
+@bridge_bp.route("/simulator/environments", methods=["GET"])
+def simulator_environments():
+    return handle_proxy_call(FastAPIProxy.get_simulator_environments())
+
+@bridge_bp.route("/simulator/reset", methods=["POST"])
+def simulator_reset():
+    return handle_proxy_call(FastAPIProxy.post_simulator_reset(request.json or {}))
+
+@bridge_bp.route("/simulator/step", methods=["POST"])
+def simulator_step():
+    return handle_proxy_call(FastAPIProxy.post_simulator_step(request.json or {}))
+
+@bridge_bp.route("/simulator/batch_step", methods=["POST"])
+def simulator_batch_step():
+    return handle_proxy_call(FastAPIProxy.post_simulator_batch_step(request.json or {}))
+
+@bridge_bp.route("/simulator/stream", methods=["POST"])
+def simulator_stream():
+    return handle_proxy_call(FastAPIProxy.post_simulator_stream(request.json or {}))
+
+@bridge_bp.route("/simulator/benchmark", methods=["POST"])
+def simulator_benchmark():
+    return handle_proxy_call(FastAPIProxy.post_simulator_benchmark(request.json or {}))
+
+
 

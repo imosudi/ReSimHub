@@ -1,5 +1,17 @@
 # backend/fastapi_app/routers/__init__.py
-from . import experiments, environments, status, train, orchestrator, analytics, benchmark, metrics, dashboard, checkpoints
+from . import (
+    experiments,
+    environments,
+    status,
+    train,
+    orchestrator,
+    analytics,
+    benchmark,
+    metrics,
+    dashboard,
+    checkpoints,
+    simulator_bridge,
+)
 
 __all__ = [
     "experiments",
@@ -12,5 +24,5 @@ __all__ = [
     "metrics",
     "dashboard",
     "checkpoints",
+    "simulator_bridge",
 ]
-

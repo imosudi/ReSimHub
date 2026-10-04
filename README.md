@@ -691,6 +691,75 @@ curl -X POST http://127.0.0.1:8000/checkpoints/ckpt_8f19da21/resume \
 
 ---
 
+### High-Throughput gRPC & Protocol Buffers Simulator Bridge
+
+ReSimHub provides a high-throughput, low-latency gRPC and Protocol Buffers interface enabling efficient communication between RL agent runners and simulation environments. This architecture eliminates HTTP and JSON serialisation overhead, supporting sub-millisecond stepping, observation streaming, and vectorised batch stepping across distributed workers.
+
+#### 1. Protocol Buffers Schema (`shared/proto/simulator.proto`)
+
+The interface defines strongly-typed messages and RPC methods:
+- **`CheckHealth`**: Queries service operational status and supported environments (`CartPole-v1`, `LunarLander-v2`, `Pendulum-v1`, `Acrobot-v1`).
+- **`Reset`**: Initialises or resets an environment with optional random seed and configuration parameters.
+- **`Step`**: Executes a single transition step with discrete action integer or continuous action vector.
+- **`BatchStep`**: Vectorised batch stepping executing multiple environment transitions concurrently.
+- **`StreamObservations`**: Server-side streaming RPC yielding successive state transitions and observations.
+- **`BenchmarkThroughput`**: Profiles stepping throughput in transitions per second.
+
+#### 2. Starting the gRPC Server
+
+Run the gRPC simulator service on the default port (`50051`):
+```bash
+python -m backend.grpc_service.server
+```
+
+#### 3. Python gRPC Client Usage
+
+```python
+from backend.grpc_service.client import SimulatorGRPCClient
+
+with SimulatorGRPCClient(target="127.0.0.1:50051") as client:
+    # Reset environment
+    reset_data = client.reset(env_id="CartPole-v1", seed=42)
+    obs = reset_data["observation"]
+
+    # Execute single step
+    step_data = client.step(env_id="CartPole-v1", action=1, is_discrete=True)
+    next_obs, reward, done = step_data["observation"], step_data["reward"], step_data["done"]
+
+    # Batch step execution
+    batch_data = client.batch_step(
+        steps=[
+            {"env_id": "CartPole-v1", "action": 0, "is_discrete": True},
+            {"env_id": "CartPole-v1", "action": 1, "is_discrete": True},
+        ],
+        batch_id="batch-001",
+    )
+
+    # Stream observation trajectory
+    for transition in client.stream_observations(env_id="CartPole-v1", max_steps=50):
+        print(f"Step {transition['step_count']}: reward={transition['reward']}")
+
+    # Profile throughput
+    perf = client.benchmark_throughput(env_id="CartPole-v1", num_steps=1000, batch_size=32)
+    print(f"Throughput: {perf['steps_per_second']:.1f} steps/sec")
+```
+
+#### 4. REST to gRPC Gateway Endpoints
+
+For HTTP clients and web dashboards, FastAPI and Flask expose transparent REST endpoints bridging directly to the gRPC service:
+
+| Endpoint | Method | Description |
+|:---|:---:|:---|
+| `/simulator/health` | GET | Inspect simulator service operational status |
+| `/simulator/environments` | GET | List supported simulation environments |
+| `/simulator/reset` | POST | Initialise or reset environment with optional seed |
+| `/simulator/step` | POST | Execute a single transition step |
+| `/simulator/batch_step` | POST | Execute vectorised batch stepping |
+| `/simulator/stream` | POST | Stream consecutive observation steps |
+| `/simulator/benchmark` | POST | Profile simulator throughput and latency |
+
+---
+
 ### Real-Time Visualisation & WebSocket Dashboard
 Open your browser and navigate to:
 ```
@@ -763,7 +832,7 @@ For detailed setup instructions, configuration options, CI/CD integration, and t
 - [x] ReSimHub Dashboard (WebSocket streaming & real-time RL visualisation)
 - [x] Multi-agent orchestration and scheduling (parallel batch execution across Celery workers)
 - [x] Model checkpointing and artifact versioning (dynamic saving and loading of model weights)
-- [ ] REST to gRPC bridge
+- [x] REST to gRPC bridge (high-throughput simulator communication via Protocol Buffers)
 - [ ] Plugin system for custom RL environments
 - [ ] Automated benchmark publishing (OpenAI Gym, PettingZoo)
 

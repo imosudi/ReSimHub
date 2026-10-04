@@ -198,3 +198,74 @@ class FastAPIProxy:
             response.raise_for_status()
             return response.json()
 
+    @staticmethod
+    async def get_simulator_health():
+        """
+        Query gRPC simulator health status via FastAPI bridge.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{FASTAPI_BASE_URL}/simulator/health")
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def get_simulator_environments():
+        """
+        Query available simulation environments via FastAPI bridge.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{FASTAPI_BASE_URL}/simulator/environments")
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def post_simulator_reset(payload: Dict):
+        """
+        Trigger environment reset via FastAPI bridge.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{FASTAPI_BASE_URL}/simulator/reset", json=payload)
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def post_simulator_step(payload: Dict):
+        """
+        Trigger single environment step via FastAPI bridge.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{FASTAPI_BASE_URL}/simulator/step", json=payload)
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def post_simulator_batch_step(payload: Dict):
+        """
+        Trigger batch step execution via FastAPI bridge.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{FASTAPI_BASE_URL}/simulator/batch_step", json=payload)
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def post_simulator_stream(payload: Dict):
+        """
+        Trigger observation trajectory stream via FastAPI bridge.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{FASTAPI_BASE_URL}/simulator/stream", json=payload)
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def post_simulator_benchmark(payload: Dict):
+        """
+        Trigger throughput benchmarking via FastAPI bridge.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{FASTAPI_BASE_URL}/simulator/benchmark", json=payload)
+            response.raise_for_status()
+            return response.json()
+
+
