@@ -18,7 +18,9 @@ from backend.fastapi_app.routers import (
     analytics,
     benchmark,
     metrics,
+    dashboard,
 )
+from backend.fastapi_app.services.progress_broadcast import get_broadcast_service
 from backend.fastapi_app.core.logging_config import logger  # structured logger
 
 
@@ -37,6 +39,7 @@ app.include_router(status.router)
 app.include_router(analytics.router)
 app.include_router(benchmark.router)
 app.include_router(metrics.router)
+app.include_router(dashboard.router)
 
 app.add_middleware(LogMiddleware)
 
@@ -51,18 +54,31 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 # -------------------------------------------------------
 @app.on_event("startup")
 async def on_startup():
-    """Initialize database and log startup state."""
+    """Initialize database, progress broadcaster, and log startup state."""
     try:
         init_db()
         logger.info("Database initialised successfully.")
     except Exception as e:
         logger.error("Database initialisation failed", error=str(e))
+
+    try:
+        broadcaster = get_broadcast_service()
+        await broadcaster.connect()
+        logger.info("Progress broadcaster initialized.")
+    except Exception as e:
+        logger.warning("Progress broadcaster init warning", error=str(e))
+
     logger.info("ReSimHub Application startup complete.")
 
 
 @app.on_event("shutdown")
 async def on_shutdown():
     """Graceful shutdown with structured log."""
+    try:
+        broadcaster = get_broadcast_service()
+        await broadcaster.disconnect()
+    except Exception:
+        pass
     logger.info("ReSimHub Application shutting down.")
 
 # -------------------------------------------------------

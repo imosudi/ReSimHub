@@ -71,6 +71,10 @@ pytest tests/ -k "benchmark" -v
 | `test_list_recent_results` | ✅ Recent results listed | • Response count ≥ 1<br>• Valid list structure<br>• Sorted by timestamp (desc) |
 | `test_compare_models` | ✅ Models compared | • Sorted by `mean_reward`<br>• All model_ids present<br>• Comparative metrics included |
 | `test_invalid_compare_model_id` | ✅ Error handling works | • Returns error JSON<br>• No exceptions raised<br>• Appropriate HTTP status |
+| `test_advanced_benchmark_metrics_computation` | ✅ Advanced RL metrics calculated | • `iqm_reward`, `cvar_reward`, `stability_score`, `success_rate`<br>• Math boundaries verified |
+| `test_benchmark_database_persistence_and_history` | ✅ Database record persistence | • `BenchmarkRecord` saved in DB<br>• Paginated `/benchmark/history` verified |
+| `test_model_metadata_persistence_and_detail_endpoint` | ✅ Model metadata & details | • `ModelMetadata` saved in DB<br>• `/benchmark/model/{model_id}` returns metadata and top score |
+| `test_orchestrator_tasks_list_and_db_persistence` | ✅ Training task DB persistence | • `TrainingRunRecord` persisted<br>• Filterable `/orchestrate/tasks` endpoint |
 
 ---
 

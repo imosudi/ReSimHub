@@ -12,7 +12,10 @@ This ensures:
 import os
 import pytest
 import shutil
-import redis
+try:
+    import redis
+except ImportError:
+    redis = None
 from pathlib import Path
 
 from backend.fastapi_app.core.config import CacheConfig
@@ -38,13 +41,16 @@ def clean_test_environment():
     print("\n🔧 Cleaning test environment...")
 
     # 1️⃣ Clean Redis (if available)
-    try:
-        redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
-        redis_client.ping()
-        redis_client.flushdb()
-        print("🧹 Redis database flushed (db=3)")
-    except Exception as e:
-        print(f"⚠️ Redis unavailable or not running: {e}")
+    if redis is not None:
+        try:
+            redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+            redis_client.ping()
+            redis_client.flushdb()
+            print("🧹 Redis database flushed (db=3)")
+        except Exception as e:
+            print(f"⚠️ Redis unavailable or not running: {e}")
+    else:
+        print("⚠️ redis module not installed; skipping Redis flush")
 
     # 2️⃣ Clean storage/models directory
     if STORAGE_DIR.exists():
@@ -53,6 +59,14 @@ def clean_test_environment():
 
     STORAGE_DIR.mkdir(parents=True, exist_ok=True)
     print(f"📂 Created fresh storage directory: {STORAGE_DIR}")
+
+    # 3️⃣ Initialize Database Tables
+    try:
+        from backend.fastapi_app.core.db import init_db
+        init_db()
+        print("🗄️ Database tables initialised.")
+    except Exception as e:
+        print(f"⚠️ Database initialization warning: {e}")
 
     yield
 

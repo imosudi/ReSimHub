@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReSimHub | Real-Time RL Visualisation & Benchmarking</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            surface: {
+              800: '#1e222d',
+              900: '#131722',
+              950: '#0b0e14',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar for terminal log */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #131722; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+  </style>
+</head>
+<body class="bg-surface-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- TOP NAVBAR -->
+  <header class="border-b border-slate-800 bg-surface-900/90 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-brand-600 to-cyan-400 flex items-center justify-center font-bold text-lg shadow-lg shadow-brand-500/20 text-white">
+        RL
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">ReSimHub</span>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/30">v0.7.0</span>
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Stage 6/8
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">Reinforcement Learning Experimentation & Benchmarking Suite</p>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center space-x-4">
+      <div id="wsStatusBadge" class="flex items-center gap-2 text-xs px-3 py-1.5 rounded-md bg-slate-800 border border-slate-700 font-mono">
+        <span id="wsIndicator" class="w-2 h-2 rounded-full bg-amber-400"></span>
+        <span id="wsStatusText" class="text-slate-300">WebSocket: Connecting...</span>
+      </div>
+      <a href="/docs" target="_blank" class="text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded-md bg-slate-800/80 hover:bg-slate-700 transition">
+        Swagger API
+      </a>
+      <a href="/metrics" target="_blank" class="text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded-md bg-slate-800/80 hover:bg-slate-700 transition">
+        Prometheus
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 p-6 space-y-6 max-w-[1600px] w-full mx-auto">
+
+    <!-- TELEMETRY SNAPSHOT ROW -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-surface-900 border border-slate-800/80 rounded-xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Active Experiments</span>
+          <span class="text-brand-400 font-mono">Gauge</span>
+        </div>
+        <div class="text-2xl font-bold font-mono mt-2 text-white" id="statActiveExps">3</div>
+        <div class="text-[11px] text-slate-500 mt-1">Tracked via Prometheus telemetry</div>
+      </div>
+      <div class="bg-surface-900 border border-slate-800/80 rounded-xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Completed Training Runs</span>
+          <span class="text-emerald-400 font-mono">Counter</span>
+        </div>
+        <div class="text-2xl font-bold font-mono mt-2 text-white" id="statCompletedTotal">5</div>
+        <div class="text-[11px] text-slate-500 mt-1">Celery worker orchestrated</div>
+      </div>
+      <div class="bg-surface-900 border border-slate-800/80 rounded-xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Avg Benchmark Latency</span>
+          <span class="text-cyan-400 font-mono">ms</span>
+        </div>
+        <div class="text-2xl font-bold font-mono mt-2 text-white" id="statAvgLatency">24.56 ms</div>
+        <div class="text-[11px] text-slate-500 mt-1">Evaluation episode throughput</div>
+      </div>
+      <div class="bg-surface-900 border border-slate-800/80 rounded-xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Broker & PubSub</span>
+          <span class="text-amber-400 font-mono">Real-time</span>
+        </div>
+        <div class="text-base font-semibold font-mono mt-2 text-emerald-400 flex items-center gap-2" id="brokerStatus">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Active (Redis/Fallback)
+        </div>
+        <div class="text-[11px] text-slate-500 mt-1">SSE + WebSocket dual gateway</div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID: TRAINING VISUALISER + LIVE LOGS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- LEFT: TRAINING WORKBENCH & REAL-TIME CHARTS (2 Cols) -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Training Control Deck -->
+        <div class="bg-surface-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-4">
+            <div>
+              <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                <span>⚡ Real-Time Training Orchestration</span>
+              </h2>
+              <p class="text-xs text-slate-400">Stream live agent rewards, policy loss, and convergence per epoch over WebSocket</p>
+            </div>
+            <div id="simStatusPill" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-mono font-medium">
+              STATUS: IDLE
+            </div>
+          </div>
+
+          <!-- Controls Form -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1 font-medium">Algorithm</label>
+              <select id="simAlgo" class="w-full bg-surface-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                <option value="DQN">DQN (Deep Q-Network)</option>
+                <option value="PPO" selected>PPO (Proximal Policy Opt)</option>
+                <option value="SAC">SAC (Soft Actor-Critic)</option>
+                <option value="A2C">A2C (Advantage Actor-Critic)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1 font-medium">Environment</label>
+              <select id="simEnv" class="w-full bg-surface-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                <option value="CartPole-v1" selected>CartPole-v1</option>
+                <option value="LunarLander-v2">LunarLander-v2</option>
+                <option value="MountainCar-v0">MountainCar-v0</option>
+                <option value="HalfCheetah-v4">HalfCheetah-v4</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1 font-medium">Total Epochs</label>
+              <input id="simEpochs" type="number" min="5" max="50" value="15" class="w-full bg-surface-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1 font-medium">Learning Rate (α)</label>
+              <input id="simLr" type="text" value="3e-4" class="w-full bg-surface-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500 font-mono">
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <div class="flex items-center space-x-3">
+              <button id="btnStartTrain" onclick="startLiveTraining()" class="px-5 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs shadow-md shadow-brand-600/30 transition flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Launch Live Training</span>
+              </button>
+              <button id="btnStopTrain" onclick="stopLiveTraining()" disabled class="px-4 py-2 rounded-lg bg-rose-900/40 hover:bg-rose-800/60 text-rose-300 font-medium text-xs border border-rose-700/50 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                Stop
+              </button>
+            </div>
+            <div class="flex items-center space-x-6 text-xs font-mono">
+              <div><span class="text-slate-400">Epoch:</span> <span id="valEpoch" class="text-white font-bold">-</span></div>
+              <div><span class="text-slate-400">Reward:</span> <span id="valReward" class="text-emerald-400 font-bold">-</span></div>
+              <div><span class="text-slate-400">Loss:</span> <span id="valLoss" class="text-cyan-400 font-bold">-</span></div>
+              <div><span class="text-slate-400">Exploration (ε):</span> <span id="valEps" class="text-amber-400 font-bold">-</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-Time Reward & Loss Charts -->
+        <div class="bg-surface-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-semibold text-white">Reward Progression & Policy Trajectory</h3>
+              <p class="text-xs text-slate-400">Real-time reward per epoch vs. moving average trend</p>
+            </div>
+            <div class="flex items-center space-x-2 text-xs">
+              <span class="inline-block w-3 h-0.5 bg-emerald-400"></span><span class="text-slate-400">Reward</span>
+              <span class="inline-block w-3 h-0.5 bg-brand-400 ml-2"></span><span class="text-slate-400">Moving Avg</span>
+            </div>
+          </div>
+          <div class="h-64 w-full">
+            <canvas id="rewardChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: LIVE EVENT STREAM & TERMINAL (1 Col) -->
+      <div class="space-y-6">
+
+        <!-- Task Stream Inspector -->
+        <div class="bg-surface-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col h-[560px]">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+              <h3 class="text-sm font-semibold text-white">Live WebSocket Stream</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="clearLogs()" class="text-[11px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded bg-surface-800 hover:bg-slate-700 transition">
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Connect to specific Task ID -->
+          <div class="flex gap-2 mb-3">
+            <input id="customTaskId" type="text" placeholder="Listen to task_id (e.g. celery-123)" class="flex-1 bg-surface-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-brand-500">
+            <button onclick="subscribeCustomTask()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700">
+              Hook
+            </button>
+          </div>
+
+          <!-- Terminal Output Box -->
+          <div id="terminalStream" class="flex-1 bg-surface-950 border border-slate-800 rounded-lg p-3 font-mono text-[11px] overflow-y-auto space-y-1.5 text-slate-300">
+            <div class="text-slate-500 italic">// ReSimHub WebSocket stream attached...</div>
+            <div class="text-slate-500 italic">// Waiting for training or benchmark events...</div>
+          </div>
+
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Protocol: <strong class="text-slate-300">WS / JSON</strong></span>
+            <span id="eventsReceivedCount">Events: 0</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- LOWER SECTION: BENCHMARKING SUITE & MODEL COMPARATOR -->
+    <div class="bg-surface-900 border border-slate-800 rounded-xl p-6 shadow-lg">
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-6">
+        <div>
+          <h2 class="text-base font-semibold text-white flex items-center gap-2">
+            <span>📊 Benchmark Comparison & Agent Evaluation</span>
+          </h2>
+          <p class="text-xs text-slate-400">Evaluate policies, simulate evaluation rollouts, and benchmark reward distributions</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button onclick="runQuickBenchmark()" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-xs shadow-md shadow-cyan-600/30 transition flex items-center gap-2">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <span>Run Benchmark Simulation</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Benchmark Execution Deck -->
+        <div class="space-y-4">
+          <div class="bg-surface-800/50 border border-slate-700/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Evaluation Parameters</h4>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Model Handle / ID</label>
+              <input id="benchModelId" type="text" value="mdl_dqn_v1" class="w-full bg-surface-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:border-brand-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Environment</label>
+              <select id="benchEnv" class="w-full bg-surface-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+                <option value="CartPole-v1">CartPole-v1</option>
+                <option value="LunarLander-v2">LunarLander-v2</option>
+                <option value="Acrobot-v1">Acrobot-v1</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Evaluation Episodes</label>
+              <input id="benchEpisodes" type="number" value="50" min="10" max="200" class="w-full bg-surface-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono">
+            </div>
+            <div id="benchResultBox" class="mt-3 p-3 rounded-lg bg-surface-900 border border-slate-800 text-xs hidden space-y-1.5">
+              <div class="text-emerald-400 font-semibold font-mono text-xs flex items-center justify-between">
+                <span>Mean Reward:</span> <span id="resMeanReward" class="text-sm font-bold">-</span>
+              </div>
+              <div class="text-slate-400 font-mono text-[11px] flex justify-between">
+                <span>IQM (Trimmed Mean):</span> <span id="resIqmReward" class="text-indigo-400 font-semibold">-</span>
+              </div>
+              <div class="text-slate-400 font-mono text-[11px] flex justify-between">
+                <span>Success Rate:</span> <span id="resSuccessRate" class="text-emerald-400 font-semibold">-</span>
+              </div>
+              <div class="text-slate-400 font-mono text-[11px] flex justify-between">
+                <span>CVaR (Worst 10%):</span> <span id="resCvarReward" class="text-amber-400 font-semibold">-</span>
+              </div>
+              <div class="text-slate-400 font-mono text-[11px] flex justify-between">
+                <span>Stability Score:</span> <span id="resStabilityScore" class="text-cyan-400 font-semibold">-</span>
+              </div>
+              <div class="text-slate-400 font-mono text-[11px] flex justify-between">
+                <span>Std Deviation:</span> <span id="resStdReward">-</span>
+              </div>
+              <div class="text-slate-400 font-mono text-[11px] flex justify-between">
+                <span>Median Reward:</span> <span id="resMedianReward">-</span>
+              </div>
+              <div class="text-slate-400 font-mono text-[11px] flex justify-between">
+                <span>Eval Latency:</span> <span id="resLatency">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comparative Chart -->
+        <div class="lg:col-span-2 bg-surface-800/40 border border-slate-700/60 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Multi-Agent Comparative Scoreboard</h4>
+            <span class="text-[11px] text-slate-400">Mean Reward ± Standard Deviation</span>
+          </div>
+          <div class="h-60 w-full">
+            <canvas id="benchmarkChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    // Global state
+    let trainWs = null;
+    let metricsWs = null;
+    let customWs = null;
+    let eventCount = 0;
+    let rewardHistory = [];
+    let movingAvgHistory = [];
+    let labelsHistory = [];
+
+    // Charts
+    let rewardChart = null;
+    let benchmarkChart = null;
+
+    // Init Charts
+    function initCharts() {
+      const ctx = document.getElementById('rewardChart').getContext('2d');
+      rewardChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labelsHistory,
+          datasets: [
+            {
+              label: 'Epoch Reward',
+              data: rewardHistory,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              borderWidth: 2,
+              tension: 0.3,
+              fill: true,
+              pointRadius: 4,
+              pointBackgroundColor: '#10b981'
+            },
+            {
+              label: 'Moving Average',
+              data: movingAvgHistory,
+              borderColor: '#818cf8',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              tension: 0.3,
+              pointRadius: 0,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              title: { display: true, text: 'Reward', color: '#64748b', font: { size: 11 } }
+            }
+          }
+        }
+      });
+
+      // Benchmark Chart
+      const bctx = document.getElementById('benchmarkChart').getContext('2d');
+      benchmarkChart = new Chart(bctx, {
+        type: 'bar',
+        data: {
+          labels: ['DQN (Baseline)', 'PPO (Current)', 'SAC (Off-policy)', 'A2C (Synchronous)'],
+          datasets: [
+            {
+              label: 'Mean Reward',
+              data: [195.4, 238.1, 251.0, 182.2],
+              backgroundColor: ['#3b82f6', '#10b981', '#6366f1', '#f59e0b'],
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#94a3b8', font: { size: 11 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              title: { display: true, text: 'Evaluation Score', color: '#64748b', font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    // Connect to Metrics WebSocket
+    function connectMetricsWs() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/live-metrics`;
+      
+      metricsWs = new WebSocket(wsUrl);
+
+      metricsWs.onopen = () => {
+        document.getElementById('wsIndicator').className = 'w-2 h-2 rounded-full bg-emerald-400';
+        document.getElementById('wsStatusText').innerText = 'WebSocket: Connected';
+        logTerminal('info', 'Connected to /ws/live-metrics');
+      };
+
+      metricsWs.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.active_experiments !== undefined) {
+            document.getElementById('statActiveExps').innerText = data.active_experiments;
+          }
+          if (data.completed_training !== undefined) {
+            document.getElementById('statCompletedTotal').innerText = data.completed_training;
+          }
+          if (data.avg_latency_ms !== undefined) {
+            document.getElementById('statAvgLatency').innerText = `${data.avg_latency_ms} ms`;
+          }
+        } catch (e) {
+          // ignore parsing
+        }
+      };
+
+      metricsWs.onclose = () => {
+        document.getElementById('wsIndicator').className = 'w-2 h-2 rounded-full bg-rose-400';
+        document.getElementById('wsStatusText').innerText = 'WebSocket: Disconnected';
+        setTimeout(connectMetricsWs, 3000);
+      };
+
+      metricsWs.onerror = () => {
+        metricsWs.close();
+      };
+    }
+
+    // Start Live Training Simulation via WebSocket
+    function startLiveTraining() {
+      const algo = document.getElementById('simAlgo').value;
+      const env = document.getElementById('simEnv').value;
+      const epochs = parseInt(document.getElementById('simEpochs').value) || 15;
+
+      // Reset data
+      rewardHistory = [];
+      movingAvgHistory = [];
+      labelsHistory = [];
+      rewardChart.data.labels = labelsHistory;
+      rewardChart.data.datasets[0].data = rewardHistory;
+      rewardChart.data.datasets[1].data = movingAvgHistory;
+      rewardChart.update();
+
+      document.getElementById('btnStartTrain').disabled = true;
+      document.getElementById('btnStopTrain').disabled = false;
+      document.getElementById('simStatusPill').className = 'text-xs px-2.5 py-1 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/40 font-mono font-medium animate-pulse';
+      document.getElementById('simStatusPill').innerText = 'STATUS: TRAINING';
+
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/live-train`;
+
+      if (trainWs) {
+        trainWs.close();
+      }
+
+      trainWs = new WebSocket(wsUrl);
+
+      trainWs.onopen = () => {
+        logTerminal('train', `Starting run: Algo=${algo}, Env=${env}, Epochs=${epochs}`);
+        trainWs.send(JSON.stringify({
+          action: 'start',
+          algo: algo,
+          env: env,
+          epochs: epochs,
+          experiment_id: Math.floor(Math.random() * 900) + 100
+        }));
+      };
+
+      trainWs.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          handleTrainMessage(msg);
+        } catch (e) {
+          logTerminal('raw', event.data);
+        }
+      };
+
+      trainWs.onclose = () => {
+        document.getElementById('btnStartTrain').disabled = false;
+        document.getElementById('btnStopTrain').disabled = true;
+      };
+
+      trainWs.onerror = (err) => {
+        logTerminal('error', `WebSocket training error`);
+        document.getElementById('btnStartTrain').disabled = false;
+        document.getElementById('btnStopTrain').disabled = true;
+      };
+    }
+
+    function stopLiveTraining() {
+      if (trainWs && trainWs.readyState === WebSocket.OPEN) {
+        trainWs.send(JSON.stringify({ action: 'stop' }));
+        logTerminal('warn', 'User requested training halt');
+      }
+      document.getElementById('btnStartTrain').disabled = false;
+      document.getElementById('btnStopTrain').disabled = true;
+      document.getElementById('simStatusPill').className = 'text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-mono font-medium';
+      document.getElementById('simStatusPill').innerText = 'STATUS: STOPPED';
+    }
+
+    function handleTrainMessage(msg) {
+      logTerminal('event', JSON.stringify(msg));
+
+      if (msg.epoch !== undefined) {
+        document.getElementById('valEpoch').innerText = `${msg.epoch} / ${msg.total_epochs}`;
+        document.getElementById('valReward').innerText = msg.reward;
+        document.getElementById('valLoss').innerText = msg.loss !== undefined ? msg.loss : '-';
+        document.getElementById('valEps').innerText = msg.epsilon !== undefined ? msg.epsilon : '-';
+
+        labelsHistory.push(`Ep ${msg.epoch}`);
+        rewardHistory.push(msg.reward);
+
+        // Compute rolling moving average
+        const windowSize = 3;
+        const slice = rewardHistory.slice(Math.max(0, rewardHistory.length - windowSize));
+        const avg = (slice.reduce((a, b) => a + b, 0) / slice.length).toFixed(2);
+        movingAvgHistory.push(parseFloat(avg));
+
+        rewardChart.update();
+      }
+
+      if (msg.status === 'SUCCESS') {
+        document.getElementById('simStatusPill').className = 'text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono font-medium';
+        document.getElementById('simStatusPill').innerText = 'STATUS: CONVERGED';
+        document.getElementById('btnStartTrain').disabled = false;
+        document.getElementById('btnStopTrain').disabled = true;
+        logTerminal('success', `Completed! Final Accuracy: ${(msg.final_accuracy * 100).toFixed(1)}%`);
+      }
+    }
+
+    // Subscribe to arbitrary task ID
+    function subscribeCustomTask() {
+      const taskId = document.getElementById('customTaskId').value.trim();
+      if (!taskId) return;
+
+      if (customWs) customWs.close();
+
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/tasks/${taskId}`;
+      customWs = new WebSocket(wsUrl);
+
+      logTerminal('info', `Hooking to task stream: ${taskId}`);
+
+      customWs.onmessage = (event) => {
+        logTerminal('task', event.data);
+      };
+
+      customWs.onerror = () => {
+        logTerminal('error', `Failed to hook to task: ${taskId}`);
+      };
+    }
+
+    // Trigger Benchmark Simulation via API
+    async function runQuickBenchmark() {
+      const modelId = document.getElementById('benchModelId').value;
+      const envName = document.getElementById('benchEnv').value;
+      const episodes = document.getElementById('benchEpisodes').value;
+
+      logTerminal('info', `Triggering benchmark simulation: ${modelId} on ${envName}...`);
+
+      const formData = new FormData();
+      formData.append('model_id', modelId);
+      formData.append('env_name', envName);
+      formData.append('episodes', episodes);
+
+      try {
+        const resp = await fetch('/benchmark/run', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await resp.json();
+
+        document.getElementById('benchResultBox').classList.remove('hidden');
+        document.getElementById('resMeanReward').innerText = data.mean_reward;
+        document.getElementById('resIqmReward').innerText = data.iqm_reward !== undefined ? data.iqm_reward : '-';
+        document.getElementById('resSuccessRate').innerText = data.success_rate !== undefined ? `${data.success_rate}%` : '-';
+        document.getElementById('resCvarReward').innerText = data.cvar_reward !== undefined ? data.cvar_reward : '-';
+        document.getElementById('resStabilityScore').innerText = data.stability_score !== undefined ? data.stability_score : '-';
+        document.getElementById('resStdReward').innerText = `± ${data.std_reward}`;
+        document.getElementById('resMedianReward').innerText = data.median_reward;
+        document.getElementById('resLatency').innerText = `${data.latency_ms} ms`;
+
+        // Update Benchmark chart with new evaluated model
+        if (!benchmarkChart.data.labels.includes(modelId)) {
+          benchmarkChart.data.labels.push(modelId);
+          benchmarkChart.data.datasets[0].data.push(data.mean_reward);
+          benchmarkChart.update();
+        }
+
+        logTerminal('success', `Benchmark complete: Mean=${data.mean_reward}, Latency=${data.latency_ms}ms`);
+      } catch (err) {
+        logTerminal('error', `Benchmark request failed: ${err}`);
+      }
+    }
+
+    // Helper: Print log line in terminal box
+    function logTerminal(type, text) {
+      eventCount++;
+      document.getElementById('eventsReceivedCount').innerText = `Events: ${eventCount}`;
+
+      const terminal = document.getElementById('terminalStream');
+      const row = document.createElement('div');
+      row.className = 'flex items-start gap-2 py-0.5 border-b border-slate-900/60 font-mono';
+
+      const time = new Date().toISOString().split('T')[1].slice(0, 8);
+      const timeSpan = `<span class="text-slate-600 select-none">[${time}]</span>`;
+
+      let badge = '';
+      if (type === 'train') badge = '<span class="text-brand-400 font-semibold">[TRAIN]</span>';
+      else if (type === 'event') badge = '<span class="text-emerald-400 font-semibold">[EVENT]</span>';
+      else if (type === 'success') badge = '<span class="text-emerald-300 bg-emerald-950/60 px-1 rounded">[OK]</span>';
+      else if (type === 'error') badge = '<span class="text-rose-400 font-semibold">[ERR]</span>';
+      else if (type === 'warn') badge = '<span class="text-amber-400 font-semibold">[WARN]</span>';
+      else badge = '<span class="text-cyan-400 font-semibold">[INFO]</span>';
+
+      row.innerHTML = `${timeSpan} ${badge} <span class="break-all text-slate-300">${escapeHtml(text)}</span>`;
+      terminal.appendChild(row);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function clearLogs() {
+      const terminal = document.getElementById('terminalStream');
+      terminal.innerHTML = '<div class="text-slate-500 italic">// Terminal cleared</div>';
+      eventCount = 0;
+      document.getElementById('eventsReceivedCount').innerText = 'Events: 0';
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Window onload
+    window.addEventListener('DOMContentLoaded', () => {
+      initCharts();
+      connectMetricsWs();
+    });
+  </script>
+</body>
+</html>

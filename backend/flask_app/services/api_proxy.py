@@ -1,9 +1,10 @@
 
 # backend/flask_app/services/api_proxy.py
+import os
 import httpx
 from typing import Dict
 
-FASTAPI_BASE_URL = "http://127.0.0.1:8000"  # Update if deployed elsewhere
+FASTAPI_BASE_URL = os.getenv("FASTAPI_BASE_URL", "http://127.0.0.1:8000")
 
 class FastAPIProxy:
     """

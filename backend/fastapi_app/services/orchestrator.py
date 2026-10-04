@@ -22,7 +22,10 @@ celery_app = Celery(
 )
 
 # Redis for live progress updates
-redis_client = redis.Redis(host="localhost", port=6379, db=2, decode_responses=True)
+try:
+    redis_client = redis.Redis.from_url(cache_config.url + '2', decode_responses=True)
+except Exception:
+    redis_client = None
 
 # Optional: Redis-backed table for tracking tasks (used by /tasks)
 TASK_TABLE_KEY = "resimhub:tasks"
@@ -30,12 +33,49 @@ TASK_TABLE_KEY = "resimhub:tasks"
 
 def _sync_task_to_db(task_id: str, data: dict):
     """
-    Sync or update task metadata in Redis.
-    (Later can be extended to PostgreSQL or SQLAlchemy model)
+    Sync or update task metadata in Redis and persist to database.
     """
-    existing = redis_client.hgetall(f"{TASK_TABLE_KEY}:{task_id}") or {}
-    existing.update(data)
-    redis_client.hset(f"{TASK_TABLE_KEY}:{task_id}", mapping=existing)
+    # 1. Update Redis cache
+    if redis_client:
+        try:
+            existing = redis_client.hgetall(f"{TASK_TABLE_KEY}:{task_id}") or {}
+            existing.update({k: str(v) for k, v in data.items()})
+            redis_client.hset(f"{TASK_TABLE_KEY}:{task_id}", mapping=existing)
+        except Exception as e:
+            log.warning(f"Redis task sync error: {e}")
+
+    # 2. Persist to PostgreSQL / SQLite database
+    try:
+        from backend.fastapi_app.core.db import SessionLocal
+        from shared.models.training_model import TrainingRunRecord
+        db = SessionLocal()
+        record = db.query(TrainingRunRecord).filter(TrainingRunRecord.task_id == task_id).first()
+        if not record:
+            record = TrainingRunRecord(
+                task_id=task_id,
+                experiment_id=data.get("experiment_id"),
+                algo=data.get("algo", "Unknown"),
+                env_name=data.get("env", "CartPole-v1"),
+                status=data.get("status", "RUNNING"),
+                total_epochs=data.get("total_epochs", 5),
+                created_at=datetime.utcnow()
+            )
+            db.add(record)
+        else:
+            if "status" in data:
+                record.status = data["status"]
+            if "last_epoch" in data:
+                record.last_epoch = data["last_epoch"]
+            if "last_reward" in data:
+                record.last_reward = data["last_reward"]
+            if "final_accuracy" in data:
+                record.final_accuracy = data["final_accuracy"]
+            if data.get("status") == "SUCCESS":
+                record.completed_at = datetime.utcnow()
+        db.commit()
+        db.close()
+    except Exception as exc:
+        log.warning(f"Database task persistence error: {exc}")
 
 
 @celery_app.task(bind=True, name="run_training_task")

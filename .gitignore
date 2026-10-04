@@ -211,3 +211,5 @@ __marimo__/
 envs/
 .config.yaml
 command.txt
+storage/models/*
+!storage/models/.gitkeep

@@ -313,6 +313,12 @@ curl -X POST http://127.0.0.1:8000/benchmark/run \
   "mean_reward": 203.68,
   "std_reward": 34.65,
   "median_reward": 204.18,
+  "min_reward": 142.10,
+  "max_reward": 278.40,
+  "iqm_reward": 202.95,
+  "success_rate": 86.0,
+  "cvar_reward": 151.32,
+  "stability_score": 5.88,
   "latency_ms": 26.02,
   "total_episodes": 50,
   "status": "completed",
@@ -322,7 +328,7 @@ curl -X POST http://127.0.0.1:8000/benchmark/run \
 
 ---
 
-### List Recent Benchmark Results
+### List Recent Benchmark Results (Redis Cache / Disk)
 ```bash
 curl http://127.0.0.1:8000/benchmark/recent
 ```
@@ -337,21 +343,98 @@ curl http://127.0.0.1:8000/benchmark/recent
       "mean_reward": 203.68,
       "std_reward": 34.65,
       "median_reward": 204.18,
+      "min_reward": 142.10,
+      "max_reward": 278.40,
+      "iqm_reward": 202.95,
+      "success_rate": 86.0,
+      "cvar_reward": 151.32,
+      "stability_score": 5.88,
       "latency_ms": 26.02,
       "total_episodes": 50,
       "status": "completed",
       "evaluated_at": "2025-10-30T14:23:19.748328"
-    },
+    }
+  ]
+}
+```
+
+---
+
+### Query Historical Benchmarks from Database (Paginated)
+```bash
+curl "http://127.0.0.1:8000/benchmark/history?model_id=mdl_afdbb795&limit=20&offset=0"
+```
+**Output**
+```json
+{
+  "total": 1,
+  "limit": 20,
+  "offset": 0,
+  "results": [
     {
+      "id": 1,
       "model_id": "mdl_afdbb795",
       "env_name": "CartPole-v1",
-      "mean_reward": 198.68,
-      "std_reward": 37.13,
-      "median_reward": 188.05,
-      "latency_ms": 23.86,
+      "mean_reward": 203.68,
+      "std_reward": 34.65,
+      "median_reward": 204.18,
+      "min_reward": 142.10,
+      "max_reward": 278.40,
+      "iqm_reward": 202.95,
+      "success_rate": 86.0,
+      "cvar_reward": 151.32,
+      "stability_score": 5.88,
+      "latency_ms": 26.02,
       "total_episodes": 50,
       "status": "completed",
-      "evaluated_at": "2025-10-30T14:22:28.345363"
+      "evaluated_at": "2025-10-30T14:23:19.748328"
+    }
+  ]
+}
+```
+
+---
+
+### Inspect Model Metadata & Top Evaluation Score
+```bash
+curl "http://127.0.0.1:8000/benchmark/model/mdl_afdbb795"
+```
+**Output**
+```json
+{
+  "model_id": "mdl_afdbb795",
+  "filename": "dqn_cartpole.pkl",
+  "size_bytes": 1024,
+  "uploaded_at": "2025-10-30T14:16:26.241943",
+  "top_score": 203.68,
+  "top_score_env": "CartPole-v1",
+  "total_benchmarks": 1
+}
+```
+
+---
+
+### Query Training Run Records & Orchestrator Tasks (DB Persisted)
+```bash
+curl "http://127.0.0.1:8000/orchestrate/tasks?status=COMPLETED&limit=10"
+```
+**Output**
+```json
+{
+  "total": 1,
+  "tasks": [
+    {
+      "task_id": "sim_exp1_1729000000",
+      "experiment_id": "exp1",
+      "algo": "PPO",
+      "env_name": "CartPole-v1",
+      "status": "COMPLETED",
+      "current_epoch": 15,
+      "total_epochs": 15,
+      "latest_reward": 248.5,
+      "latest_loss": 0.021,
+      "created_at": "2025-10-30T14:10:00.000000",
+      "completed_at": "2025-10-30T14:10:30.000000"
     }
   ]
 }
@@ -374,14 +457,36 @@ curl "http://127.0.0.1:8000/benchmark/compare?model_ids=mdl_afdbb795,mdl_1234567
       "mean_reward": 204.06,
       "std_reward": 31.64,
       "median_reward": 197.33,
-      "latency_ms": "np.float64(25.53)",
-      "total_episodes": "50",
+      "min_reward": 150.2,
+      "max_reward": 280.1,
+      "iqm_reward": 203.4,
+      "success_rate": 88.0,
+      "cvar_reward": 155.0,
+      "stability_score": 6.45,
+      "latency_ms": 25.53,
+      "total_episodes": 50,
       "status": "completed",
       "evaluated_at": "2025-10-30T14:32:39.036548"
     }
   ]
 }
 ```
+
+---
+
+### Real-Time Visualisation & WebSocket Dashboard
+Open your browser and navigate to:
+```
+http://127.0.0.1:8000/dashboard
+```
+
+**Key Dashboard Features:**
+- **Live Training Visualizer**: Launch interactive training sessions via WebSocket (`/ws/live-train`) and watch real-time reward convergence, moving averages, loss decay, and exploration rate.
+- **Task Stream Inspector**: Connect directly to arbitrary Celery tasks via WebSocket (`/ws/tasks/{task_id}`).
+- **Interactive Benchmark Suite**: Trigger policy evaluations on environments (`CartPole-v1`, `LunarLander-v2`) and compare multi-agent performances dynamically.
+- **Real-Time Telemetry**: Live metric snapshots via WebSocket (`/ws/live-metrics`) and Prometheus metrics gauges.
+
+---
 ## Research Context — RL Infrastructure Landscape
 
 The **ReSimHub** framework emerges from an analysis of the **Reinforcement Learning (RL) infrastructure landscape**, 
@@ -438,9 +543,9 @@ For detailed setup instructions, configuration options, CI/CD integration, and t
 
 ## Road Ahead
 
+- [x] ReSimHub Dashboard (WebSocket streaming & real-time RL visualisation)
 - [ ] Multi-agent orchestration and scheduling
 - [ ] REST → gRPC bridge
-- [ ] ReSimHub Dashboard (React + WebSocket visualisation)
 - [ ] Plugin system for custom RL environments
 - [ ] Automated benchmark publishing (OpenAI Gym, PettingZoo)
 
