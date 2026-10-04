@@ -98,3 +98,33 @@ class FastAPIProxy:
             response = await client.get(url)
             response.raise_for_status()
             return response.json()
+
+    @staticmethod
+    async def post_schedule_batch(payload: Dict):
+        """
+        Dispatch a multi-agent parallel batch schedule request to FastAPI orchestrator.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{FASTAPI_BASE_URL}/orchestrate/batch", json=payload)
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def get_batch_status(batch_id: str):
+        """
+        Retrieve real-time consolidated status and metrics for a scheduled batch.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{FASTAPI_BASE_URL}/orchestrate/batch/{batch_id}")
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def get_batches(limit: int = 20, offset: int = 0):
+        """
+        Retrieve paginated list of multi-agent batch schedules.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{FASTAPI_BASE_URL}/orchestrate/batches?limit={limit}&offset={offset}")
+            response.raise_for_status()
+            return response.json()

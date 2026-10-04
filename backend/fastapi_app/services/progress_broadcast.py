@@ -40,36 +40,44 @@ class ProgressBroadcastService:
                 pass
             self.is_connected = False
 
-    async def publish(self, task_id: str, data: dict):
+    async def publish(self, task_id: str, data: dict, channel_prefix: str = "task_progress"):
         """
         Publishes progress JSON to Redis pub/sub channel and any local in-memory subscribers.
         """
         message_str = json.dumps(data) if isinstance(data, (dict, list)) else str(data)
+        channel = f"{channel_prefix}:{task_id}"
 
         if self.is_connected and self.redis:
             try:
-                channel = f"task_progress:{task_id}"
                 await self.redis.publish(channel, message_str)
-                log.debug(f"Published progress to Redis for {task_id}: {data}")
+                log.debug(f"Published progress to Redis for {channel}: {data}")
             except Exception as e:
-                log.warning(f"Failed to publish to Redis for {task_id}: {e}")
+                log.warning(f"Failed to publish to Redis for {channel}: {e}")
 
         # Always notify in-memory subscribers (WebSocket listeners in this process)
-        if task_id in self.in_memory_subscribers:
-            for q in list(self.in_memory_subscribers[task_id]):
-                try:
-                    await q.put(message_str)
-                except Exception as e:
-                    log.warning(f"Failed to dispatch to in-memory queue: {e}")
+        keys_to_notify = {channel, task_id}
+        for k in keys_to_notify:
+            if k in self.in_memory_subscribers:
+                for q in list(self.in_memory_subscribers[k]):
+                    try:
+                        await q.put(message_str)
+                    except Exception as e:
+                        log.warning(f"Failed to dispatch to in-memory queue: {e}")
 
-    async def subscribe(self, task_id: str):
+    async def publish_batch(self, batch_id: str, data: dict):
         """
-        Creates an async generator yielding progress updates for a task.
+        Publishes batch-level progress JSON to the batch Redis pub/sub channel.
+        """
+        await self.publish(batch_id, data, channel_prefix="batch_progress")
+
+    async def subscribe(self, task_id: str, channel_prefix: str = "task_progress"):
+        """
+        Creates an async generator yielding progress updates for a task or batch.
         Uses Redis pub/sub if available, otherwise falls back to local in-memory queue.
         """
+        channel = f"{channel_prefix}:{task_id}"
         if self.is_connected and self.redis:
             pubsub = self.redis.pubsub()
-            channel = f"task_progress:{task_id}"
             await pubsub.subscribe(channel)
             log.info(f"Subscribed to Redis channel: {channel}")
 
@@ -87,21 +95,28 @@ class ProgressBroadcastService:
         else:
             # In-memory queue fallback
             queue = asyncio.Queue()
-            if task_id not in self.in_memory_subscribers:
-                self.in_memory_subscribers[task_id] = set()
-            self.in_memory_subscribers[task_id].add(queue)
-            log.info(f"Subscribed to in-memory channel for task {task_id}")
+            if channel not in self.in_memory_subscribers:
+                self.in_memory_subscribers[channel] = set()
+            self.in_memory_subscribers[channel].add(queue)
+            log.info(f"Subscribed to in-memory channel {channel}")
 
             try:
                 while True:
                     data = await queue.get()
                     yield data
             finally:
-                if task_id in self.in_memory_subscribers:
-                    self.in_memory_subscribers[task_id].discard(queue)
-                    if not self.in_memory_subscribers[task_id]:
-                        del self.in_memory_subscribers[task_id]
-                log.info(f"Unsubscribed from in-memory channel for task {task_id}")
+                if channel in self.in_memory_subscribers:
+                    self.in_memory_subscribers[channel].discard(queue)
+                    if not self.in_memory_subscribers[channel]:
+                        del self.in_memory_subscribers[channel]
+                log.info(f"Unsubscribed from in-memory channel {channel}")
+
+    async def subscribe_batch(self, batch_id: str):
+        """
+        Creates an async generator yielding progress updates for a batch.
+        """
+        async for msg in self.subscribe(batch_id, channel_prefix="batch_progress"):
+            yield msg
 
 
 _shared_broadcast_service = None

@@ -9,11 +9,19 @@ error_id = str(uuid.uuid4())
 log = get_logger("ExceptionHandler")
 
 async def http_exception_handler(request: Request, exc):
-    #log.warning(f"HTTP Exception: {exc.detail}")
-    log.warning(f"HTTP Exception on {request.url.path}: {exc.detail}")
+    from fastapi.exceptions import RequestValidationError
+    if isinstance(exc, RequestValidationError):
+        log.warning(f"Validation error on {request.url.path}: {exc.errors()}")
+        return JSONResponse(
+            status_code=422,
+            content={"error": "Validation error", "detail": exc.errors()},
+        )
+    detail = getattr(exc, "detail", str(exc))
+    status_code = getattr(exc, "status_code", 400)
+    log.warning(f"HTTP Exception on {request.url.path}: {detail}")
     return JSONResponse(
-        status_code=exc.status_code,
-        content={"error": exc.detail},
+        status_code=status_code,
+        content={"error": detail},
     )
 
 async def unhandled_exception_handler(request: Request, exc):

@@ -474,6 +474,146 @@ curl "http://127.0.0.1:8000/benchmark/compare?model_ids=mdl_afdbb795,mdl_1234567
 
 ---
 
+### Multi-Agent Parallel Batch Scheduling
+Schedule a batch of diverse agent trials (DQN, PPO, SAC, A2C) with distinct seeds and hyperparameters to run concurrently across Celery workers:
+
+```bash
+curl -X POST http://127.0.0.1:8000/orchestrate/batch \
+     -H "Content-Type: application/json" \
+     -d '{
+       "name": "CartPole Multi-Agent Parallel Sweep",
+       "env_name": "CartPole-v1",
+       "priority": 7,
+       "agents": [
+         {"algo": "DQN", "seed": 101, "total_epochs": 5, "hyperparameters": {"learning_rate": 0.001}},
+         {"algo": "PPO", "seed": 202, "total_epochs": 5, "hyperparameters": {"clip_ratio": 0.2}},
+         {"algo": "SAC", "seed": 303, "total_epochs": 5, "hyperparameters": {"tau": 0.005}}
+       ]
+     }'
+```
+**Output**
+```json
+{
+  "batch_id": "batch_9a2f1c84",
+  "name": "CartPole Multi-Agent Parallel Sweep",
+  "env_name": "CartPole-v1",
+  "status": "SCHEDULED",
+  "total_trials": 3,
+  "task_ids": [
+    "c8a14b0e-9273-42e1-b4d2-f54215ad9001",
+    "d7e29a1b-1038-41c3-8f01-e83719bc4229",
+    "b3f912c0-7719-4822-9df1-a20188bc3104"
+  ],
+  "scheduled_at": "2026-10-04T10:30:00.000000"
+}
+```
+
+---
+
+### Query Multi-Agent Batch Status & Aggregate Metrics
+Inspect real-time consolidated status, trial progression, and mathematical metric aggregation (mean, maximum, and minimum rewards):
+
+```bash
+curl http://127.0.0.1:8000/orchestrate/batch/batch_9a2f1c84
+```
+**Output**
+```json
+{
+  "batch_id": "batch_9a2f1c84",
+  "name": "CartPole Multi-Agent Parallel Sweep",
+  "env_name": "CartPole-v1",
+  "status": "COMPLETED",
+  "total_trials": 3,
+  "completed_trials": 3,
+  "failed_trials": 0,
+  "priority": 7,
+  "created_at": "2026-10-04T10:30:00.000000",
+  "completed_at": "2026-10-04T10:30:15.000000",
+  "trials": [
+    {
+      "trial_id": "trial_d14e02",
+      "task_id": "c8a14b0e-9273-42e1-b4d2-f54215ad9001",
+      "algo": "DQN",
+      "seed": 101,
+      "status": "SUCCESS",
+      "current_epoch": 5,
+      "total_epochs": 5,
+      "latest_reward": 218.4,
+      "final_accuracy": 0.9412
+    },
+    {
+      "trial_id": "trial_f82a19",
+      "task_id": "d7e29a1b-1038-41c3-8f01-e83719bc4229",
+      "algo": "PPO",
+      "seed": 202,
+      "status": "SUCCESS",
+      "current_epoch": 5,
+      "total_epochs": 5,
+      "latest_reward": 235.1,
+      "final_accuracy": 0.9634
+    },
+    {
+      "trial_id": "trial_b77e30",
+      "task_id": "b3f912c0-7719-4822-9df1-a20188bc3104",
+      "algo": "SAC",
+      "seed": 303,
+      "status": "SUCCESS",
+      "current_epoch": 5,
+      "total_epochs": 5,
+      "latest_reward": 242.8,
+      "final_accuracy": 0.9821
+    }
+  ],
+  "summary_metrics": {
+    "avg_reward": 232.1,
+    "max_reward": 242.8,
+    "min_reward": 218.4,
+    "active_trials": 0,
+    "completed_trials": 3
+  }
+}
+```
+
+---
+
+### List Multi-Agent Batch Schedules (Paginated)
+```bash
+curl "http://127.0.0.1:8000/orchestrate/batches?limit=10&offset=0"
+```
+**Output**
+```json
+{
+  "total": 1,
+  "batches": [
+    {
+      "batch_id": "batch_9a2f1c84",
+      "name": "CartPole Multi-Agent Parallel Sweep",
+      "env_name": "CartPole-v1",
+      "status": "COMPLETED",
+      "total_trials": 3,
+      "completed_trials": 3,
+      "failed_trials": 0,
+      "priority": 7
+    }
+  ]
+}
+```
+
+---
+
+### Stream Batch Telemetry via WebSocket
+Connect directly to `/ws/batch/{batch_id}` for live event streaming from Celery workers:
+
+```javascript
+const ws = new WebSocket("ws://127.0.0.1:8000/ws/batch/batch_9a2f1c84");
+ws.onmessage = (event) => {
+  const telemetry = JSON.parse(event.data);
+  console.log("Live trial update:", telemetry);
+};
+```
+
+---
+
 ### Real-Time Visualisation & WebSocket Dashboard
 Open your browser and navigate to:
 ```
@@ -544,8 +684,8 @@ For detailed setup instructions, configuration options, CI/CD integration, and t
 ## Road Ahead
 
 - [x] ReSimHub Dashboard (WebSocket streaming & real-time RL visualisation)
-- [ ] Multi-agent orchestration and scheduling
-- [ ] REST → gRPC bridge
+- [x] Multi-agent orchestration and scheduling (parallel batch execution across Celery workers)
+- [ ] REST to gRPC bridge
 - [ ] Plugin system for custom RL environments
 - [ ] Automated benchmark publishing (OpenAI Gym, PettingZoo)
 

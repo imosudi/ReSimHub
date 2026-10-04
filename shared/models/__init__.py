@@ -2,7 +2,7 @@
 from .base import Base
 from .experiment_model import Experiment, Environment
 from .benchmark_model import BenchmarkRecord, ModelMetadata
-from .training_model import TrainingRunRecord
+from .training_model import TrainingRunRecord, BatchScheduleRecord
 
 __all__ = [
     "Base",
@@ -11,4 +11,5 @@ __all__ = [
     "BenchmarkRecord",
     "ModelMetadata",
     "TrainingRunRecord",
+    "BatchScheduleRecord",
 ]

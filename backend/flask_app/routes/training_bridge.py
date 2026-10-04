@@ -2,7 +2,10 @@
 from flask import Blueprint, request, jsonify
 import asyncio
 import httpx
-from flask_app.services.api_proxy import FastAPIProxy
+try:
+    from backend.flask_app.services.api_proxy import FastAPIProxy
+except ImportError:
+    from flask_app.services.api_proxy import FastAPIProxy
 
 bridge_bp = Blueprint("bridge", __name__, url_prefix="/api/v1")
 
@@ -80,3 +83,18 @@ def benchmark_compare():
     model_ids = request.args.get("model_ids", "")
     env = request.args.get("env", None)
     return handle_proxy_call(FastAPIProxy.get_benchmark_compare(model_ids, env))
+
+@bridge_bp.route("/schedule_batch", methods=["POST"])
+def schedule_batch():
+    return handle_proxy_call(FastAPIProxy.post_schedule_batch(request.json or {}))
+
+@bridge_bp.route("/batches/<batch_id>", methods=["GET"])
+def get_batch(batch_id):
+    return handle_proxy_call(FastAPIProxy.get_batch_status(batch_id))
+
+@bridge_bp.route("/batches", methods=["GET"])
+def list_batches():
+    limit = int(request.args.get("limit", 20))
+    offset = int(request.args.get("offset", 0))
+    return handle_proxy_call(FastAPIProxy.get_batches(limit, offset))
+

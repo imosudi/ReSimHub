@@ -2,10 +2,16 @@ import json
 import asyncio
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, Request, Query
+from fastapi import APIRouter, Request, Query, HTTPException
 from fastapi.responses import StreamingResponse
 from celery.result import AsyncResult
-from backend.fastapi_app.services.orchestrator import run_training_task, celery_app
+from backend.fastapi_app.services.orchestrator import (
+    run_training_task,
+    celery_app,
+    schedule_multi_agent_batch,
+    get_batch_status as fetch_batch_status,
+    list_batches as fetch_batch_list,
+)
 from backend.fastapi_app.services.progress_broadcast import get_broadcast_service
 from shared.schemas.orchestrator_schema import (
     TaskQueueResponse,
@@ -13,6 +19,10 @@ from shared.schemas.orchestrator_schema import (
     TrainingRequest,
     TrainingRunListResponse,
     TrainingRunItemResponse,
+    BatchScheduleRequest,
+    BatchScheduleResponse,
+    BatchStatusResponse,
+    BatchListResponse,
 )
 from shared.utils.logger import get_logger
 
@@ -21,15 +31,15 @@ log = get_logger("OrchestratorRouter")
 
 broadcast_service = get_broadcast_service()
 
-# Connect the broadcast service
+
 @router.on_event("startup")
 async def startup_event():
     await broadcast_service.connect()
 
 
-# -----------------------------
-# 🧠 Training Orchestration
-# -----------------------------
+# -------------------------------------------------------------
+# 🧠 Training Orchestration (Single Agent)
+# -------------------------------------------------------------
 @router.post("/train", response_model=TaskQueueResponse)
 async def orchestrate_training(payload: TrainingRequest):
     """
@@ -62,9 +72,53 @@ async def orchestrate_training(payload: TrainingRequest):
     return TaskQueueResponse(task_id=task.id, status="queued")
 
 
-# -----------------------------
+# -------------------------------------------------------------
+# 🤖 Multi-Agent Batch Scheduling & Orchestration
+# -------------------------------------------------------------
+@router.post("/batch", response_model=BatchScheduleResponse)
+async def schedule_batch(payload: BatchScheduleRequest):
+    """
+    Schedule a parallel batch of diverse agent trials across distributed Celery workers.
+    Each trial executes concurrently with dedicated seed, algorithm, and hyperparameters.
+    """
+    log.info(f"Scheduling multi-agent batch '{payload.name}' on {payload.env_name} with {len(payload.agents)} trials")
+    try:
+        result = schedule_multi_agent_batch(payload)
+        return BatchScheduleResponse(**result)
+    except Exception as exc:
+        log.error(f"Failed to schedule batch: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to schedule batch: {str(exc)}")
+
+
+@router.get("/batch/{batch_id}", response_model=BatchStatusResponse)
+async def get_batch(batch_id: str):
+    """
+    Retrieve real-time consolidated status, trial progress, and aggregate performance metrics for a batch.
+    """
+    data = fetch_batch_status(batch_id)
+    if not data:
+        raise HTTPException(status_code=404, detail=f"Batch schedule '{batch_id}' not found.")
+    return BatchStatusResponse(**data)
+
+
+@router.get("/batches", response_model=BatchListResponse)
+async def list_all_batches(
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    """
+    List paginated multi-agent batch schedules recorded in the database.
+    """
+    data = fetch_batch_list(limit=limit, offset=offset)
+    return BatchListResponse(
+        total=data["total"],
+        batches=[BatchStatusResponse(**b) for b in data["batches"]]
+    )
+
+
+# -------------------------------------------------------------
 # 🔍 Check Task Status (API)
-# -----------------------------
+# -------------------------------------------------------------
 @router.get("/tasks/{task_id}", response_model=TaskStatusResponse)
 async def get_task_status(task_id: str):
     """
@@ -95,7 +149,6 @@ async def get_task_status(task_id: str):
         }
         response["result"] = meta
     else:
-        # FAILURE / RETRY / REVOKED
         response["progress"] = None
         response["result"] = str(result.info)
 
@@ -103,13 +156,13 @@ async def get_task_status(task_id: str):
     return response
 
 
-# -----------------------------
+# -------------------------------------------------------------
 # 📡 Stream Task Progress (SSE)
-# -----------------------------
+# -------------------------------------------------------------
 @router.get("/tasks/stream/{task_id}")
 async def stream_task_progress(request: Request, task_id: str):
     """
-    Stream live progress updates from Celery through Redis → FastAPI via SSE.
+    Stream live progress updates from Celery through Redis to FastAPI via SSE.
     """
     async def event_stream():
         async for message in broadcast_service.subscribe(task_id):
@@ -122,9 +175,9 @@ async def stream_task_progress(request: Request, task_id: str):
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
-# -----------------------------
+# -------------------------------------------------------------
 # 📋 List All Tasks
-# -----------------------------
+# -------------------------------------------------------------
 @router.get("/tasks", response_model=TrainingRunListResponse)
 async def list_all_tasks(
     limit: int = Query(50, ge=1, le=500),

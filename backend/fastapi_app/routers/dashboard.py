@@ -99,6 +99,70 @@ async def websocket_task_progress(websocket: WebSocket, task_id: str):
 
 
 # -------------------------------------------------------------------------
+# 🤖 WebSocket: Multi-Agent Batch Progress Stream (/ws/batch/{batch_id})
+# -------------------------------------------------------------------------
+@router.websocket("/ws/batch/{batch_id}")
+async def websocket_batch_progress(websocket: WebSocket, batch_id: str):
+    """
+    Subscribes to live progress updates for a parallel multi-agent batch execution.
+    Streams trial progress events as JSON messages over WebSocket.
+    """
+    await websocket.accept()
+    log.info(f"WebSocket client connected to /ws/batch/{batch_id}")
+
+    # Initial acknowledgement
+    await websocket.send_json({
+        "event": "connected",
+        "batch_id": batch_id,
+        "timestamp": datetime.utcnow().isoformat(),
+        "status": "LISTENING"
+    })
+
+    stop_event = asyncio.Event()
+
+    async def incoming_listener():
+        try:
+            while not stop_event.is_set():
+                data = await websocket.receive_text()
+                try:
+                    payload = json.loads(data)
+                    action = payload.get("action")
+                    if action == "ping":
+                        await websocket.send_json({"action": "pong", "timestamp": datetime.utcnow().isoformat()})
+                except Exception:
+                    pass
+        except WebSocketDisconnect:
+            stop_event.set()
+        except Exception:
+            stop_event.set()
+
+    async def stream_broadcaster():
+        try:
+            async for message in broadcast_service.subscribe_batch(batch_id):
+                if stop_event.is_set():
+                    break
+                await websocket.send_text(message)
+        except WebSocketDisconnect:
+            stop_event.set()
+        except Exception as exc:
+            log.warning(f"Error streaming to websocket for batch {batch_id}: {exc}")
+            stop_event.set()
+
+    listener_task = asyncio.create_task(incoming_listener())
+    broadcaster_task = asyncio.create_task(stream_broadcaster())
+
+    # Wait until either disconnects
+    done, pending = await asyncio.wait(
+        [listener_task, broadcaster_task],
+        return_when=asyncio.FIRST_COMPLETED
+    )
+    for t in pending:
+        t.cancel()
+
+    log.info(f"WebSocket client disconnected from /ws/batch/{batch_id}")
+
+
+# -------------------------------------------------------------------------
 # ⚡ WebSocket: Interactive Live Training Simulation (/ws/live-train)
 # -------------------------------------------------------------------------
 @router.websocket("/ws/live-train")
