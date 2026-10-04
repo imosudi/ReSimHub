@@ -1,8 +1,9 @@
 # backend/fastapi_app/routers/benchmark.py
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Query
-from backend.fastapi_app.services.benchmark_service import BenchmarkService
+from fastapi.responses import JSONResponse
 from typing import List, Optional
 
+from backend.fastapi_app.services.benchmark_service import BenchmarkService
 from backend.fastapi_app.models.benchmark_model import (
     ModelUploadResponse,
     BenchmarkRunResponse,
@@ -41,8 +42,11 @@ async def run_benchmark(
     (Interquartile Mean IQM, Success Rate, CVaR worst 10% tail, Stability Score).
     Persists evaluation record to the database.
     """
-    result = BenchmarkService.run_benchmark_simulation(model_id, env_name, episodes)
-    return result
+    try:
+        result = BenchmarkService.run_benchmark_simulation(model_id, env_name, episodes)
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @router.get("/recent", response_model=BenchmarkRecentResponse)
@@ -99,5 +103,5 @@ async def compare_models(
 
     comparison = BenchmarkService.compare_models(ids, env_name=env)
     if "error" in comparison:
-        raise HTTPException(status_code=404, detail=comparison["error"])
+        return JSONResponse(status_code=404, content={"error": comparison["error"]})
     return comparison

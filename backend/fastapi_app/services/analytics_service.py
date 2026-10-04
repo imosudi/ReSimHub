@@ -13,7 +13,7 @@ class AnalyticsService:
         r"Experiment (\d+)\s*\| Epoch (\d+)/(\d+)\s*\| Reward:\s*([\d\.]+)"
     )
     final_accuracy_pattern = re.compile(
-        r"Experiment (\d+) completed.*Env=(\w+).*Algo=(\w+).*Final Accuracy: ([\d\.]+)"
+        r"Experiment (\d+) completed.*Env=([\w\-.]+).*Algo=([\w\-.]+).*Final Accuracy: ([\d\.]+)"
     )
 
     @staticmethod
@@ -89,40 +89,3 @@ class AnalyticsService:
         recent_experiments = sorted(experiments.values(), key=lambda x: x["experiment_id"], reverse=True)
         return recent_experiments[:limit]
 
-@staticmethod
-def list_recent_experiments(limit: int = 5):
-    """
-    Returns a summary of recent experiments detected in the log file
-    with experiment_id, env, algorithm, and last reward/final accuracy.
-    """
-    from pathlib import Path
-    import re
-    import pandas as pd
-
-    LOG_FILE = Path("logs/resimhub.log")
-    if not LOG_FILE.exists():
-        return []
-
-    # Pattern to capture completed experiments
-    pattern = re.compile(
-        r"Experiment (\d+) completed.*Env=(\w+).*Algo=(\w+).*Final Accuracy: ([\d\.]+)"
-    )
-    records = []
-    with LOG_FILE.open("r") as f:
-        for line in f:
-            match = pattern.search(line)
-            if match:
-                exp_id = int(match.group(1))
-                env = match.group(2)
-                algo = match.group(3)
-                final_accuracy = float(match.group(4))
-                records.append({
-                    "experiment_id": exp_id,
-                    "env": env,
-                    "algorithm": algo,
-                    "final_accuracy": final_accuracy
-                })
-
-    df = pd.DataFrame(records)
-    df = df.drop_duplicates(subset=["experiment_id"], keep="last").tail(limit)
-    return df.to_dict(orient="records")

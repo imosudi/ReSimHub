@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from shared.schemas.experiment_schema import EnvironmentCreate, EnvironmentResponse
 from shared.models.experiment_model import Environment
-from backend.fastapi_app.dependencies.db import get_db
+from backend.fastapi_app.core.db import get_db
 
 router = APIRouter(prefix="/environments", tags=["Environments"])
 
