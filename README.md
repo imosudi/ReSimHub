@@ -145,7 +145,8 @@ ReSimHub scales across a variety of hardware configurations, from local laptops 
 | **Tier 2: Research Workstation** | 8 to 16 Cores | 16 GB to 32 GB | 50 GB to 100 GB NVMe | 1x NVIDIA GPU (8 GB to 16 GB VRAM) | Multi-agent batch scheduling, 4 to 8 Celery workers, live checkpointing |
 | **Tier 3: Distributed Cluster** | 16 to 64+ vCPUs / node | 32 GB to 128+ GB / node | 200 GB+ High-IOPS NVMe | Multi-GPU (NVIDIA A100 / L4 / H100) | Multi-node Kubernetes clusters, large-scale sweeps, production evaluation |
 
-📖 For complete component-by-component resource breakdowns, bottleneck analyses, and tuning guidelines, see: **[Hardware Requirements & Sizing Guide →](docs/hardware_requirements.md)**
+📖 For complete component-by-component resource breakdowns, bottleneck analyses, and tuning guidelines, see: **[Hardware Requirements & Sizing Guide →](docs/hardware_requirements.md)**  
+📖 For a step-by-step experiment walkthrough for first-time local users, see: **[Tier 1 First-Time User Manual →](docs/tier1_user_manual.md)**
 
 
 ### Clone the Repository
