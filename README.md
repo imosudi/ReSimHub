@@ -132,8 +132,21 @@ It provides **RESTful** and **asynchronous APIs** for managing **simulation envi
 ### Prerequisites
 
 - Python **3.10+**
-- Docker & Docker Compose (optional)
-- Redis & PostgreSQL instances (local or containerised)
+- Docker & Docker Compose (optional for containerised orchestration)
+- Redis & PostgreSQL instances (local, managed, or containerised)
+
+### Hardware Requirements
+
+ReSimHub scales across a variety of hardware configurations, from local laptops to distributed compute clusters:
+
+| Deployment Tier | Minimum CPU | Minimum RAM | Storage | Accelerator (GPU) | Target Workload |
+|:---|:---|:---|:---|:---|:---|
+| **Tier 1: Minimal / Local** | 2 to 4 Cores | 4 GB to 8 GB | 15 GB SSD | Optional (CPU execution) | Local testing, single-agent simulations, API testing |
+| **Tier 2: Research Workstation** | 8 to 16 Cores | 16 GB to 32 GB | 50 GB to 100 GB NVMe | 1x NVIDIA GPU (8 GB to 16 GB VRAM) | Multi-agent batch scheduling, 4 to 8 Celery workers, live checkpointing |
+| **Tier 3: Distributed Cluster** | 16 to 64+ vCPUs / node | 32 GB to 128+ GB / node | 200 GB+ High-IOPS NVMe | Multi-GPU (NVIDIA A100 / L4 / H100) | Multi-node Kubernetes clusters, large-scale sweeps, production evaluation |
+
+📖 For complete component-by-component resource breakdowns, bottleneck analyses, and tuning guidelines, see: **[Hardware Requirements & Sizing Guide →](docs/hardware_requirements.md)**
+
 
 ### Clone the Repository
 
