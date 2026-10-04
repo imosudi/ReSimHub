@@ -21,6 +21,9 @@ class TrainingRequest(BaseModel):
     experiment_id: int
     env_name: str
     algo: str
+    checkpoint_id: Optional[str] = Field(None, description="Optional checkpoint identifier to resume model weights from")
+    resume_epochs: Optional[int] = Field(5, ge=1, le=100, description="Number of epochs to execute when training from checkpoint")
+
 
 
 class TrainingRunItemResponse(BaseModel):

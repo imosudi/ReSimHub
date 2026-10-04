@@ -614,6 +614,83 @@ ws.onmessage = (event) => {
 
 ---
 
+### Model Checkpointing & Artifact Versioning
+Capture, verify, and restore model weight snapshots dynamically during or after training:
+
+#### 1. Save or Register a Model Checkpoint
+```bash
+curl -X POST http://127.0.0.1:8000/checkpoints \
+     -H "Content-Type: application/json" \
+     -d '{
+       "algo": "PPO",
+       "env_name": "CartPole-v1",
+       "epoch": 5,
+       "step": 2500,
+       "reward": 248.5,
+       "loss": 0.021,
+       "version": "v1.0",
+       "weights": {
+         "policy.fc1.weight": [[0.15, -0.22], [0.41, -0.63]],
+         "policy.fc1.bias": [0.01, -0.01],
+         "optimiser.lr": 0.0003
+       },
+       "hyperparameters": {"clip_ratio": 0.2, "gamma": 0.99}
+     }'
+```
+**Output**
+```json
+{
+  "checkpoint_id": "ckpt_8f19da21",
+  "algo": "PPO",
+  "env_name": "CartPole-v1",
+  "epoch": 5,
+  "step": 2500,
+  "reward": 248.5,
+  "loss": 0.021,
+  "file_path": "storage/checkpoints/manual/ckpt_8f19da21_v1.0.pt",
+  "file_size_bytes": 384,
+  "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "version": "v1.0",
+  "is_best": true,
+  "created_at": "2026-10-04T12:00:00.000000"
+}
+```
+
+#### 2. Inspect Weights & Verify SHA-256 Checksum
+```bash
+curl http://127.0.0.1:8000/checkpoints/ckpt_8f19da21/weights
+```
+
+#### 3. Fetch Top-Performing Checkpoint
+```bash
+curl "http://127.0.0.1:8000/checkpoints/best?algo=PPO&env_name=CartPole-v1"
+```
+
+#### 4. Resume Training Dynamically from Checkpoint
+```bash
+curl -X POST http://127.0.0.1:8000/checkpoints/ckpt_8f19da21/resume \
+     -H "Content-Type: application/json" \
+     -d '{
+       "resume_epochs": 5,
+       "override_hyperparameters": {"learning_rate": 0.0001}
+     }'
+```
+**Output**
+```json
+{
+  "task_id": "task_a928e104",
+  "checkpoint_id": "ckpt_8f19da21",
+  "algo": "PPO",
+  "env_name": "CartPole-v1",
+  "start_epoch": 5,
+  "target_epochs": 10,
+  "status": "QUEUED",
+  "resumed_at": "2026-10-04T12:05:00.000000"
+}
+```
+
+---
+
 ### Real-Time Visualisation & WebSocket Dashboard
 Open your browser and navigate to:
 ```
@@ -685,6 +762,7 @@ For detailed setup instructions, configuration options, CI/CD integration, and t
 
 - [x] ReSimHub Dashboard (WebSocket streaming & real-time RL visualisation)
 - [x] Multi-agent orchestration and scheduling (parallel batch execution across Celery workers)
+- [x] Model checkpointing and artifact versioning (dynamic saving and loading of model weights)
 - [ ] REST to gRPC bridge
 - [ ] Plugin system for custom RL environments
 - [ ] Automated benchmark publishing (OpenAI Gym, PettingZoo)

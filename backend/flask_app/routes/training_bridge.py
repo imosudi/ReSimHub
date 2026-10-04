@@ -98,3 +98,29 @@ def list_batches():
     offset = int(request.args.get("offset", 0))
     return handle_proxy_call(FastAPIProxy.get_batches(limit, offset))
 
+@bridge_bp.route("/checkpoints", methods=["GET"])
+def list_checkpoints():
+    task_id = request.args.get("task_id")
+    algo = request.args.get("algo")
+    is_best_raw = request.args.get("is_best")
+    is_best = is_best_raw.lower() == "true" if is_best_raw is not None else None
+    limit = int(request.args.get("limit", 20))
+    offset = int(request.args.get("offset", 0))
+    return handle_proxy_call(FastAPIProxy.get_checkpoints(task_id, algo, is_best, limit, offset))
+
+@bridge_bp.route("/checkpoints/best", methods=["GET"])
+def best_checkpoint():
+    task_id = request.args.get("task_id")
+    algo = request.args.get("algo")
+    env_name = request.args.get("env_name")
+    return handle_proxy_call(FastAPIProxy.get_best_checkpoint(task_id, algo, env_name))
+
+@bridge_bp.route("/checkpoints/<checkpoint_id>", methods=["GET"])
+def checkpoint_detail(checkpoint_id):
+    return handle_proxy_call(FastAPIProxy.get_checkpoint_by_id(checkpoint_id))
+
+@bridge_bp.route("/checkpoints/<checkpoint_id>/resume", methods=["POST"])
+def resume_training(checkpoint_id):
+    return handle_proxy_call(FastAPIProxy.post_resume_checkpoint(checkpoint_id, request.json or {}))
+
+

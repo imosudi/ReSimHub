@@ -139,15 +139,34 @@ def _sync_batch_status(batch_id: str):
 # -------------------------------------------------------------
 
 @celery_app.task(bind=True, name="run_training_task")
-def run_training_task(self, experiment_id: int, env_name: str, algo: str):
+def run_training_task(
+    self,
+    experiment_id: int,
+    env_name: str,
+    algo: str,
+    resume_checkpoint_id: Optional[str] = None,
+    total_epochs: int = 5,
+):
     """
     Simulate asynchronous reinforcement learning training job.
-    Logs actual reward values per epoch for analytics integration.
-    Broadcasts updates over Redis channels for progress monitoring.
+    Dynamically saves model weight checkpoints, tracks policy metrics,
+    and supports training resumption from existing checkpoint artifacts.
     """
     log.info(f"Starting training job for Experiment {experiment_id} | Env={env_name} | Algo={algo}")
     task_id = self.request.id
-    total_epochs = 5
+
+    start_epoch = 0
+    base_reward = 180.0
+    if resume_checkpoint_id:
+        try:
+            from backend.fastapi_app.services.checkpoint_service import get_checkpoint_detail
+            ckpt = get_checkpoint_detail(resume_checkpoint_id)
+            if ckpt:
+                start_epoch = ckpt["epoch"]
+                base_reward = ckpt.get("reward") or 180.0
+                log.info(f"Restoring training from checkpoint {resume_checkpoint_id} at epoch {start_epoch}")
+        except Exception as e:
+            log.warning(f"Could not load checkpoint details: {e}")
 
     # Record job start
     _sync_task_to_db(task_id, {
@@ -158,18 +177,40 @@ def run_training_task(self, experiment_id: int, env_name: str, algo: str):
         "created_at": datetime.utcnow().isoformat(),
     })
 
-    for epoch in range(total_epochs):
+    last_reward = base_reward
+    for epoch_idx in range(total_epochs):
+        epoch = start_epoch + epoch_idx + 1
         time.sleep(1)  # Simulate training step
-        reward = round(random.uniform(180, 250), 2)
+        reward = round(random.uniform(base_reward - 10, base_reward + 40), 2)
+        base_reward = max(base_reward, reward - 5)
+        last_reward = reward
+
+        # Dynamically save model weight checkpoint
+        ckpt_meta = None
+        try:
+            from backend.fastapi_app.services.checkpoint_service import save_model_checkpoint
+            ckpt_meta = save_model_checkpoint(
+                algo=algo,
+                env_name=env_name,
+                epoch=epoch,
+                task_id=task_id,
+                experiment_id=experiment_id,
+                reward=reward,
+                loss=round(random.uniform(0.01, 0.25), 4),
+            )
+        except Exception as ckpt_err:
+            log.warning(f"Checkpoint save warning at epoch {epoch}: {ckpt_err}")
 
         meta = {
             "experiment_id": experiment_id,
             "env": env_name,
             "algo": algo,
-            "epoch": epoch + 1,
-            "total_epochs": total_epochs,
+            "epoch": epoch,
+            "total_epochs": start_epoch + total_epochs,
             "reward": reward,
             "status": "PROGRESS",
+            "checkpoint_id": ckpt_meta["checkpoint_id"] if ckpt_meta else None,
+            "is_best_checkpoint": ckpt_meta["is_best"] if ckpt_meta else False,
             "timestamp": datetime.utcnow().isoformat(),
         }
 
@@ -177,20 +218,30 @@ def run_training_task(self, experiment_id: int, env_name: str, algo: str):
         if redis_client:
             redis_client.publish(f"task_progress:{task_id}", json.dumps(meta))
 
-        log.info(f"Experiment {experiment_id} | Epoch {epoch + 1}/{total_epochs} | Reward: {reward}")
+        log.info(f"Experiment {experiment_id} | Epoch {epoch}/{start_epoch + total_epochs} | Reward: {reward}")
 
         _sync_task_to_db(task_id, {
-            "last_epoch": epoch + 1,
+            "last_epoch": epoch,
             "last_reward": reward,
             "updated_at": datetime.utcnow().isoformat(),
         })
 
     final_accuracy = round(random.uniform(0.8, 0.99), 4)
+
+    best_ckpt = None
+    try:
+        from backend.fastapi_app.services.checkpoint_service import get_best_checkpoint
+        best_ckpt = get_best_checkpoint(task_id=task_id)
+    except Exception:
+        pass
+
     result = {
         "experiment_id": experiment_id,
         "algo": algo,
         "env": env_name,
         "final_accuracy": final_accuracy,
+        "final_reward": last_reward,
+        "best_checkpoint_id": best_ckpt["checkpoint_id"] if best_ckpt else None,
         "completed_at": datetime.utcnow().isoformat(),
         "status": "SUCCESS",
     }
@@ -258,6 +309,23 @@ def run_multi_agent_trial_task(
             noise = rnd.uniform(-10.0, 10.0)
             reward = round(base + epoch_gain + noise, 2)
 
+            # Dynamically save model weight checkpoint
+            ckpt_meta = None
+            try:
+                from backend.fastapi_app.services.checkpoint_service import save_model_checkpoint
+                ckpt_meta = save_model_checkpoint(
+                    algo=algo,
+                    env_name=env_name,
+                    epoch=epoch + 1,
+                    task_id=task_id,
+                    batch_id=batch_id,
+                    trial_id=trial_id,
+                    reward=reward,
+                    loss=round(rnd.uniform(0.01, 0.2), 4),
+                )
+            except Exception as ckpt_err:
+                log.warning(f"Trial checkpoint save warning: {ckpt_err}")
+
             meta = {
                 "batch_id": batch_id,
                 "trial_id": trial_id,
@@ -269,6 +337,8 @@ def run_multi_agent_trial_task(
                 "total_epochs": total_epochs,
                 "reward": reward,
                 "status": "PROGRESS",
+                "checkpoint_id": ckpt_meta["checkpoint_id"] if ckpt_meta else None,
+                "is_best_checkpoint": ckpt_meta["is_best"] if ckpt_meta else False,
                 "timestamp": datetime.utcnow().isoformat(),
             }
 
@@ -285,6 +355,14 @@ def run_multi_agent_trial_task(
             })
 
         final_accuracy = round(rnd.uniform(0.85, 0.99), 4)
+
+        best_ckpt = None
+        try:
+            from backend.fastapi_app.services.checkpoint_service import get_best_checkpoint
+            best_ckpt = get_best_checkpoint(task_id=task_id)
+        except Exception:
+            pass
+
         result = {
             "batch_id": batch_id,
             "trial_id": trial_id,
@@ -294,6 +372,7 @@ def run_multi_agent_trial_task(
             "env": env_name,
             "final_accuracy": final_accuracy,
             "final_reward": reward,
+            "best_checkpoint_id": best_ckpt["checkpoint_id"] if best_ckpt else None,
             "completed_at": datetime.utcnow().isoformat(),
             "status": "SUCCESS",
         }

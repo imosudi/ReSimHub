@@ -128,3 +128,73 @@ class FastAPIProxy:
             response = await client.get(f"{FASTAPI_BASE_URL}/orchestrate/batches?limit={limit}&offset={offset}")
             response.raise_for_status()
             return response.json()
+
+    @staticmethod
+    async def get_checkpoints(
+        task_id: Optional[str] = None,
+        algo: Optional[str] = None,
+        is_best: Optional[bool] = None,
+        limit: int = 20,
+        offset: int = 0,
+    ):
+        """
+        Retrieve paginated model checkpoints from FastAPI backend.
+        """
+        params = {"limit": limit, "offset": offset}
+        if task_id:
+            params["task_id"] = task_id
+        if algo:
+            params["algo"] = algo
+        if is_best is not None:
+            params["is_best"] = is_best
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{FASTAPI_BASE_URL}/checkpoints", params=params)
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def get_checkpoint_by_id(checkpoint_id: str):
+        """
+        Retrieve model checkpoint details and integrity hash from FastAPI backend.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{FASTAPI_BASE_URL}/checkpoints/{checkpoint_id}")
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def get_best_checkpoint(
+        task_id: Optional[str] = None,
+        algo: Optional[str] = None,
+        env_name: Optional[str] = None,
+    ):
+        """
+        Retrieve top-performing checkpoint from FastAPI backend.
+        """
+        params = {}
+        if task_id:
+            params["task_id"] = task_id
+        if algo:
+            params["algo"] = algo
+        if env_name:
+            params["env_name"] = env_name
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{FASTAPI_BASE_URL}/checkpoints/best", params=params)
+            response.raise_for_status()
+            return response.json()
+
+    @staticmethod
+    async def post_resume_checkpoint(checkpoint_id: str, payload: Dict):
+        """
+        Trigger training resumption from a model checkpoint.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{FASTAPI_BASE_URL}/checkpoints/{checkpoint_id}/resume",
+                json=payload
+            )
+            response.raise_for_status()
+            return response.json()
+

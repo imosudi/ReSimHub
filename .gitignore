@@ -213,3 +213,5 @@ envs/
 command.txt
 storage/models/*
 !storage/models/.gitkeep
+storage/checkpoints/*
+!storage/checkpoints/.gitkeep

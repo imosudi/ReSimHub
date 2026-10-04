@@ -19,6 +19,7 @@ from backend.fastapi_app.routers import (
     benchmark,
     metrics,
     dashboard,
+    checkpoints,
 )
 from backend.fastapi_app.services.progress_broadcast import get_broadcast_service
 from backend.fastapi_app.core.logging_config import logger  # structured logger
@@ -40,6 +41,7 @@ app.include_router(analytics.router)
 app.include_router(benchmark.router)
 app.include_router(metrics.router)
 app.include_router(dashboard.router)
+app.include_router(checkpoints.router)
 
 app.add_middleware(LogMiddleware)
 

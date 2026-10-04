@@ -48,7 +48,13 @@ async def orchestrate_training(payload: TrainingRequest):
     log.info(
         f"Queuing training task: experiment={payload.experiment_id}, env={payload.env_name}, algo={payload.algo}"
     )
-    task = run_training_task.delay(payload.experiment_id, payload.env_name, payload.algo)
+    task = run_training_task.delay(
+        payload.experiment_id,
+        payload.env_name,
+        payload.algo,
+        payload.checkpoint_id,
+        payload.resume_epochs or 5,
+    )
 
     # Persist initial QUEUED record to database
     try:
